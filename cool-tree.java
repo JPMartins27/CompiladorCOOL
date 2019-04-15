@@ -1,56 +1,64 @@
-//- * - modo: java - * -
+// -*- mode: java -*- 
 //
-// arquivo: cool-tree.m4
+// file: cool-tree.m4
 //
 // Este arquivo define o AST
 //
 //////////////////////////////////////////////////////////
 
+
+
 import java.util.Enumeration;
 import java.io.PrintStream;
 import java.util.Vector;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.*;
 
 
-/** Define um programa simples phylum */
+/** Defines simple phylum Program */
 abstract class Program extends TreeNode {
     protected Program(int lineNumber) {
         super(lineNumber);
     }
     public abstract void dump_with_types(PrintStream out, int n);
     public abstract void semant();
+    public abstract void cgen(PrintStream s);
 
 }
 
 
-/** Define a simple phylum Class_ */
+/** Defines simple phylum Class_ */
 abstract class Class_ extends TreeNode {
     protected Class_(int lineNumber) {
         super(lineNumber);
     }
     public abstract void dump_with_types(PrintStream out, int n);
-    public abstract void semant(ClassTable classTable);
-    public abstract void scanFeatures(ClassTable classTable);
+    public abstract AbstractSymbol getName();
+    public abstract AbstractSymbol getParent();
+    public abstract AbstractSymbol getFilename();
+    public abstract Features getFeatures();
+
 }
 
 
-/** Define a lista phylum Classes
+/** Defines list phylum Classes
     <p>
     See <a href="ListNode.html">ListNode</a> for full documentation. */
 class Classes extends ListNode {
     public final static Class elementClass = Class_.class;
-    /** Retorna a classe dos elementos desta lista */
+    /** Returns class of this lists's elements */
     public Class getElementClass() {
         return elementClass;
     }
     protected Classes(int lineNumber, Vector elements) {
         super(lineNumber, elements);
     }
-    /** Cria uma lista vazia de "Classes" */
+    /** Creates an empty "Classes" list */
     public Classes(int lineNumber) {
         super(lineNumber);
     }
-    /** Acrescenta o elemento "Class_" a esta lista */
+    /** Appends "Class_" element to this list */
     public Classes appendElement(TreeNode elem) {
         addElement(elem);
         return this;
@@ -61,35 +69,36 @@ class Classes extends ListNode {
 }
 
 
-/** Define simple phylum Feature */
+/** Defines simple phylum Feature */
 abstract class Feature extends TreeNode {
     protected Feature(int lineNumber) {
         super(lineNumber);
     }
     public abstract void dump_with_types(PrintStream out, int n);
-    public abstract void semant(ClassTable classTable, SymbolTable symbolTable, class_c curClass, boolean firstScan);
     public abstract AbstractSymbol getName();
     public abstract AbstractSymbol getType();
+    public abstract void code(CgenNode node, CgenClassTable classTable, PrintStream s);
+    public abstract int getTempNumber(); 
 }
 
 
-/** Define a lista phylum Features
+/** Defines list phylum Features
     <p>
     See <a href="ListNode.html">ListNode</a> for full documentation. */
 class Features extends ListNode {
     public final static Class elementClass = Feature.class;
-    /** Retorna a classe dos elementos desta lista */
+    /** Returns class of this lists's elements */
     public Class getElementClass() {
         return elementClass;
     }
     protected Features(int lineNumber, Vector elements) {
         super(lineNumber, elements);
     }
-    /** Cria uma lista vazia de "Features" */
+    /** Creates an empty "Features" list */
     public Features(int lineNumber) {
         super(lineNumber);
     }
-    /** Acrescenta o elemento "Features" a esta lista */
+    /** Appends "Feature" element to this list */
     public Features appendElement(TreeNode elem) {
         addElement(elem);
         return this;
@@ -100,19 +109,17 @@ class Features extends ListNode {
 }
 
 
-/** Define simple phylum Formal */
+/** Defines simple phylum Formal */
 abstract class Formal extends TreeNode {
     protected Formal(int lineNumber) {
         super(lineNumber);
     }
     public abstract void dump_with_types(PrintStream out, int n);
-    public abstract void semant(ClassTable classTable, SymbolTable symbolTable, class_c curClass);
-    public abstract AbstractSymbol getName();
-    public abstract AbstractSymbol getType();
+
 }
 
 
-/** Define a lista phylum Formals
+/** Defines list phylum Formals
     <p>
     See <a href="ListNode.html">ListNode</a> for full documentation. */
 class Formals extends ListNode {
@@ -124,11 +131,11 @@ class Formals extends ListNode {
     protected Formals(int lineNumber, Vector elements) {
         super(lineNumber, elements);
     }
-    /** Cria uma lista "Formals" vazia */
+    /** Creates an empty "Formals" list */
     public Formals(int lineNumber) {
         super(lineNumber);
     }
-    /** Anexa elemento "Formal" a esta lista */
+    /** Appends "Formal" element to this list */
     public Formals appendElement(TreeNode elem) {
         addElement(elem);
         return this;
@@ -139,7 +146,7 @@ class Formals extends ListNode {
 }
 
 
-/** Define simple phylum Expressao */
+/** Defines simple phylum Expression */
 abstract class Expression extends TreeNode {
     protected Expression(int lineNumber) {
         super(lineNumber);
@@ -154,29 +161,29 @@ abstract class Expression extends TreeNode {
         else
             { out.println(Utilities.pad(n) + ": _no_type"); }
     }
-
-    public abstract Expression semant(ClassTable classTable, SymbolTable symbolTable, class_c curClass);
+    public abstract void code(CgenNode node, CgenClassTable classTable, int curTemp, PrintStream s);
+    public abstract int getTempNumber();
 
 }
 
 
-/** Define a lista phylum Expressoes
+/** Defines list phylum Expressions
     <p>
     See <a href="ListNode.html">ListNode</a> for full documentation. */
 class Expressions extends ListNode {
     public final static Class elementClass = Expression.class;
-    /** Retorna a classe dos elementos desta lista */
+    /** Returns class of this lists's elements */
     public Class getElementClass() {
         return elementClass;
     }
     protected Expressions(int lineNumber, Vector elements) {
         super(lineNumber, elements);
     }
-    /** Cria uma lista vazia de "Expressions" */
+    /** Creates an empty "Expressions" list */
     public Expressions(int lineNumber) {
         super(lineNumber);
     }
-    /** Anexa o elemento "Expression" a esta lista */
+    /** Appends "Expression" element to this list */
     public Expressions appendElement(TreeNode elem) {
         addElement(elem);
         return this;
@@ -187,19 +194,19 @@ class Expressions extends ListNode {
 }
 
 
-/** Define simple phylum Case */
+/** Defines simple phylum Case */
 abstract class Case extends TreeNode {
     protected Case(int lineNumber) {
         super(lineNumber);
     }
     public abstract void dump_with_types(PrintStream out, int n);
-    public abstract AbstractSymbol semant(ClassTable classTable, SymbolTable symbolTable, class_c curClass);
+    public abstract int getTempNumber();
+    public abstract void code(CgenNode node, CgenClassTable classTable, int curTemp, PrintStream s);
     public abstract AbstractSymbol getType();
-
 }
 
 
-/** Define a lista phylum Cases
+/** Defines list phylum Cases
     <p>
     See <a href="ListNode.html">ListNode</a> for full documentation. */
 class Cases extends ListNode {
@@ -211,11 +218,11 @@ class Cases extends ListNode {
     protected Cases(int lineNumber, Vector elements) {
         super(lineNumber, elements);
     }
-    /** Cria uma lista vazia de "Cases" */
+    /** Creates an empty "Cases" list */
     public Cases(int lineNumber) {
         super(lineNumber);
     }
-    /** Acrescenta o elemento "Case" a esta lista */
+    /** Appends "Case" element to this list */
     public Cases appendElement(TreeNode elem) {
         addElement(elem);
         return this;
@@ -226,25 +233,25 @@ class Cases extends ListNode {
 }
 
 
-/** Define AST constructor 'programc'.
+/** Defines AST constructor 'program'.
     <p>
     See <a href="TreeNode.html">TreeNode</a> for full documentation. */
-class programc extends Program {
-    protected Classes classes;
-    /** Cria o nó AST "programc".
-    *
-    * @param lineNumber a linha no arquivo de origem do qual este nó veio.
-    * @param a0 valor inicial para classes
-    */
-    public programc(int lineNumber, Classes a1) {
+class program extends Program {
+    public Classes classes;
+    /** Creates "program" AST node. 
+      *
+      * @param lineNumber the line in the source file from which this node came.
+      * @param a0 initial value for classes
+      */
+    public program(int lineNumber, Classes a1) {
         super(lineNumber);
         classes = a1;
     }
     public TreeNode copy() {
-        return new programc(lineNumber, (Classes)classes.copy());
+        return new program(lineNumber, (Classes)classes.copy());
     }
     public void dump(PrintStream out, int n) {
-        out.print(Utilities.pad(n) + "programc\n");
+        out.print(Utilities.pad(n) + "program\n");
         classes.dump(out, n+2);
     }
 
@@ -253,65 +260,70 @@ class programc extends Program {
         dump_line(out, n);
         out.println(Utilities.pad(n) + "_program");
         for (Enumeration e = classes.getElements(); e.hasMoreElements(); ) {
-            // sm: changed 'n + 1' to 'n + 2' to match changes elsewhere
-	    ((Class_)e.nextElement()).dump_with_types(out, n + 2);
+	    ((Class_)e.nextElement()).dump_with_types(out, n + 1);
         }
     }
-    /**Este método é o ponto de entrada para o verificador semântico. Você irá
-     precisa completá-lo na atribuição de programação 4.
-    <p>
-         Seu verificador deve fazer as seguintes duas coisas:
-    <ol>
-    <li> Verifique se o programa está semanticamente correto
-    <li> Decore a árvore de sintaxe abstrata com informações de tipo
-         definindo o campo type em cada nó do Expression.
-         (veja tree.h)
-    </ ol>
-    <p>
-       Você é livre para fazer primeiro (1) e certifique-se de pegar todos os dados semânticos.
-     erros. A parte (2) pode ser feita em um segundo estágio quando você quiser
-    para testar o compilador completo.
+    /** This method is the entry point to the semantic checker.  You will
+        need to complete it in programming assignment 4.
+	<p>
+        Your checker should do the following two things:
+	<ol>
+	<li>Check that the program is semantically correct
+	<li>Decorate the abstract syntax tree with type information
+        by setting the type field in each Expression node.
+        (see tree.h)
+	</ol>
+	<p>
+	You are free to first do (1) and make sure you catch all semantic
+    	errors. Part (2) can be done in a second stage when you want
+	to test the complete compiler.
     */
     public void semant() {
-	/* Construtor ClassTable pode fazer alguma análise semântica */
+	/* ClassTable constructor may do some semantic analysis */
 	ClassTable classTable = new ClassTable(classes);
-        int typeError = 0;	
-        /* Verificar todos os recursos de classe (métodos somente no COOL) para adquirir nomes*/
-        for (Enumeration e = classTable.getAllClasses().getElements(); e.hasMoreElements();) {
-            ((Class_) e.nextElement()).scanFeatures(classTable);
-        }
-        
-	/* algum código de análise semântica pode ir aqui */
-        for (Enumeration e = classes.getElements(); e.hasMoreElements();) {
-            ((Class_) e.nextElement()).semant(classTable);
-        }
+	
+	/* some semantic analysis code may go here */
 
 	if (classTable.errors()) {
 	    System.err.println("Compilation halted due to static semantic errors.");
 	    System.exit(1);
 	}
     }
+    /** This method is the entry point to the code generator.  All of the work
+      * of the code generator takes place within CgenClassTable constructor.
+      * @param s the output stream 
+      * @see CgenClassTable
+      * */
+    public void cgen(PrintStream s) 
+    {
+        // spim wants comments to start with '#'
+        s.print("# start of generated code\n");
+
+	CgenClassTable codegen_classtable = new CgenClassTable(classes, s);
+
+	s.print("\n# end of generated code\n");
+    }
 
 }
 
 
-/** Definee AST constructor 'class_c'.
+/** Defines AST constructor 'class_'.
     <p>
     See <a href="TreeNode.html">TreeNode</a> for full documentation. */
-class class_c extends Class_ {
-    protected AbstractSymbol name;
-    protected AbstractSymbol parent;
-    protected Features features;
-    protected AbstractSymbol filename;
-    /** ria o nó AST "class_c".
-       *
-       * @param lineNumber a linha no arquivo de origem do qual este nó veio.
-       * @param a0 valor inicial para nome
-       * @param a1 valor inicial para pai
-       * valor inicial de @param a2 para recursos
-       * @param a3 valor inicial para o nome do arquivo
+class class_ extends Class_ {
+    public AbstractSymbol name;
+    public AbstractSymbol parent;
+    public Features features;
+    public AbstractSymbol filename;
+    /** Creates "class_" AST node. 
+      *
+      * @param lineNumber the line in the source file from which this node came.
+      * @param a0 initial value for name
+      * @param a1 initial value for parent
+      * @param a2 initial value for features
+      * @param a3 initial value for filename
       */
-    public class_c(int lineNumber, AbstractSymbol a1, AbstractSymbol a2, Features a3, AbstractSymbol a4) {
+    public class_(int lineNumber, AbstractSymbol a1, AbstractSymbol a2, Features a3, AbstractSymbol a4) {
         super(lineNumber);
         name = a1;
         parent = a2;
@@ -319,10 +331,10 @@ class class_c extends Class_ {
         filename = a4;
     }
     public TreeNode copy() {
-        return new class_c(lineNumber, copy_AbstractSymbol(name), copy_AbstractSymbol(parent), (Features)features.copy(), copy_AbstractSymbol(filename));
+        return new class_(lineNumber, copy_AbstractSymbol(name), copy_AbstractSymbol(parent), (Features)features.copy(), copy_AbstractSymbol(filename));
     }
     public void dump(PrintStream out, int n) {
-        out.print(Utilities.pad(n) + "class_c\n");
+        out.print(Utilities.pad(n) + "class_\n");
         dump_AbstractSymbol(out, n+2, name);
         dump_AbstractSymbol(out, n+2, parent);
         features.dump(out, n+2);
@@ -330,10 +342,6 @@ class class_c extends Class_ {
     }
 
     
-    public AbstractSymbol getFilename() { return filename; }
-    public AbstractSymbol getName()     { return name; }
-    public AbstractSymbol getParent()   { return parent; }
-
     public void dump_with_types(PrintStream out, int n) {
         dump_line(out, n);
         out.println(Utilities.pad(n) + "_class");
@@ -347,53 +355,29 @@ class class_c extends Class_ {
         }
         out.println(Utilities.pad(n + 2) + ")");
     }
+    public AbstractSymbol getName()     { return name; }
+    public AbstractSymbol getParent()   { return parent; }
+    public AbstractSymbol getFilename() { return filename; }
+    public Features getFeatures()       { return features; }
 
-    @Override
-    public void semant(ClassTable classTable) {
-        // os métodos serão usados globalmente onde são despachados como obj.method () (public)
-         // Attrs são usados apenas no escopo da classe (privado)
-        SymbolTable symbolTable = new SymbolTable();
-        symbolTable.enterScope();
-        symbolTable.addId(TreeConstants.self, TreeConstants.SELF_TYPE);
-        for (Enumeration e = features.getElements(); e.hasMoreElements();) {
-            Feature f = (Feature) e.nextElement();
-            if (f instanceof attr) {
-                f.semant(classTable, symbolTable, this, true);
-            }
-        }
-        for (Enumeration e = features.getElements(); e.hasMoreElements();) {
-            ((Feature) e.nextElement()).semant(classTable, symbolTable, this, false);
-        }
-        symbolTable.exitScope();
-    }
-
-    @Override
-    public void scanFeatures(ClassTable classTable) {
-        for (Enumeration e = features.getElements(); e.hasMoreElements();) {
-            Feature f = (Feature) e.nextElement();
-                classTable.addFeature(f, this);
-        }
-    }
 }
 
 
-/** Define AST constructor 'method'.
+/** Defines AST constructor 'method'.
     <p>
     See <a href="TreeNode.html">TreeNode</a> for full documentation. */
 class method extends Feature {
-    protected AbstractSymbol name;
-    protected Formals formals;
-    protected AbstractSymbol return_type;
-    protected Expression expr;
-
-//    protegido AbstractSymbol hiddenType;
-    /** Cria o nó AST "método".
-       *
-       * @param lineNumber a linha no arquivo de origem do qual este nó veio.
-       * @param a0 valor inicial para nome
-       * @param a1 valor inicial para formals
-       * @param valor inicial de a2 para return_type
-       * @param a3 valor inicial para expr
+    public AbstractSymbol name;
+    public Formals formals;
+    public AbstractSymbol return_type;
+    public Expression expr;
+    /** Creates "method" AST node. 
+      *
+      * @param lineNumber the line in the source file from which this node came.
+      * @param a0 initial value for name
+      * @param a1 initial value for formals
+      * @param a2 initial value for return_type
+      * @param a3 initial value for expr
       */
     public method(int lineNumber, AbstractSymbol a1, Formals a2, AbstractSymbol a3, Expression a4) {
         super(lineNumber);
@@ -424,116 +408,57 @@ class method extends Feature {
         dump_AbstractSymbol(out, n + 2, return_type);
 	expr.dump_with_types(out, n + 2);
     }
-    
-    @Override
+   
     public AbstractSymbol getName() {
         return name;
     }
-   
-    @Override
+
     public AbstractSymbol getType() {
         return return_type;
     }
-
-    public Formals getFormals() {
-        return formals;
-    }
-
-    @Override
-    public void semant(ClassTable classTable, SymbolTable symbolTable, class_c curClass, boolean firstScan) {
-        symbolTable.enterScope();
-        
-        method originMethod = this;
-        AbstractSymbol className = curClass.getName();
-        while (!TreeConstants.Object_.equals(className)) {
-            method findMethod = (method) classTable.getFeature(name, className, true);
-            if (findMethod != null) {
-                originMethod = findMethod;
-            }
-            className = classTable.getParent(className);
-        }
-   
-        if (originMethod.getFormals().getLength() != formals.getLength()) {
-            emitErrorIncompatibleNumber(curClass, classTable);
-        } else {        
-            Enumeration f = originMethod.getFormals().getElements();
-            for (Enumeration e = formals.getElements(); e.hasMoreElements();) {
-                AbstractSymbol thisType = ((Formal) e.nextElement()).getType();
-                AbstractSymbol thatType = ((Formal) f.nextElement()).getType();
-                thatType = TreeConstants.No_type.equals(thatType) ? TreeConstants.Object_ : thatType;
-                thisType = TreeConstants.No_type.equals(thisType) ? thatType : thisType;
-                if (!thisType.equals(thatType)) {
-                    emitErrorMethodTypeDifferent(thisType, thatType, curClass, classTable);
-                }
-            }
-        }
-
+    
+    public void code(CgenNode node, CgenClassTable classTable, PrintStream s) {
+        int tempVarNumber = expr.getTempNumber();
+        int formalNumber = formals.getLength();
+        int stackSize = CgenSupport.DEFAULT_OBJFIELDS + tempVarNumber;
+        classTable.enterScope();
+        CgenSupport.emitMethodRef(node.getName(), name, s);
+        s.print(CgenSupport.LABEL);
+        CgenSupport.emitEnterFunc(tempVarNumber, s); 
+        int formalCount = 0;
         for (Enumeration e = formals.getElements(); e.hasMoreElements();) {
-            ((Formal)e.nextElement()).semant(classTable, symbolTable, curClass);
+            formal f = (formal) e.nextElement();
+            formalCount++;
+            classTable.addId(f.name, new Integer(formalNumber - formalCount + stackSize));
+        }      
+        expr.code(node, classTable, 0, s);
+        if (TreeConstants.SELF_TYPE.equals(expr.get_type()) && !(expr instanceof new_)) {
+            CgenSupport.emitMove(CgenSupport.ACC, CgenSupport.SELF, s);
         }
-        AbstractSymbol exprType = expr.semant(classTable, symbolTable, curClass).get_type(); 
-        symbolTable.exitScope();
-
-        if (!classTable.hasType(return_type)) {
-            emitErrorUndefinedReturnType(curClass, classTable);
-            return_type = TreeConstants.Object_;
-        }
-
-        exprType = TreeConstants.No_type.equals(exprType) ? return_type : exprType;
-        // se o tipo de retorno for self, o tipo de retorno inferido deverá permanecer não convertido. Caso contrário, converta-se
-         // case 1: ID: SELF {self} return SELF_TYPE
-         // caso 2: ID: XXX {self} return SELF_TYPE;
-         // caso 3: ID: SELF {XXX} errado
-         /// A B
-         // A return_type B exprType
-        if (!TreeConstants.SELF_TYPE.equals(return_type)) {
-            exprType = TreeConstants.SELF_TYPE.equals(exprType) ? curClass.getName() : exprType;
-        }
- 
-        if (!classTable.isSubtype(exprType, return_type)) {
-            emitErrorMethodTypeNotConform(exprType, curClass, classTable);
-        }
+        CgenSupport.emitExitFunc(formalNumber, tempVarNumber, s);
+        classTable.exitScope();
     }
 
-    private void emitErrorIncompatibleNumber(class_c curClass, ClassTable classTable) {
-        classTable.semantError(curClass).println("Incompatible number of formal parameters in redefined method " +
-                                                 name.toString() + ".");
-    }
-
-    private void emitErrorMethodTypeDifferent(AbstractSymbol thisType, AbstractSymbol thatType, 
-                                              class_c curClass, ClassTable classTable) {
-        classTable.semantError(curClass).println("In redefined method " +
-                        name.toString() + ", parameter type " + thisType.toString() +
-                        " is different from original type " + thatType.toString());
-    }
-
-    private void emitErrorUndefinedReturnType(class_c curClass, ClassTable classTable) {
-        classTable.semantError(curClass).println("Undefined return type " + return_type.toString() +
-                                                 " in method " + name.toString() + ".");
-    }
-
-    private void emitErrorMethodTypeNotConform(AbstractSymbol exprType, class_c curClass, ClassTable classTable) {
-        classTable.semantError(curClass).println("Inferred return type " + 
-                   exprType.toString() + " of method " + name.toString() + 
-                   " does not conform to declared return type " + return_type.toString() + ".");
+    public int getTempNumber() {
+        return expr.getTempNumber();
     }
 
 }
 
 
-/** Define AST constructor 'attr'.
+/** Defines AST constructor 'attr'.
     <p>
     See <a href="TreeNode.html">TreeNode</a> for full documentation. */
 class attr extends Feature {
-    protected AbstractSymbol name;
-    protected AbstractSymbol type_decl;
-    protected Expression init;
-    /** Cria o nó AST "attr".
-       *
-       * @param lineNumber a linha no arquivo de origem do qual este nó veio.
-       * @param a0 valor inicial para nome
-       * @param a1 valor inicial para type_decl
-       * valor inicial de @param a2 para init
+    public AbstractSymbol name;
+    public AbstractSymbol type_decl;
+    public Expression init;
+    /** Creates "attr" AST node. 
+      *
+      * @param lineNumber the line in the source file from which this node came.
+      * @param a0 initial value for name
+      * @param a1 initial value for type_decl
+      * @param a2 initial value for init
       */
     public attr(int lineNumber, AbstractSymbol a1, AbstractSymbol a2, Expression a3) {
         super(lineNumber);
@@ -559,106 +484,54 @@ class attr extends Feature {
         dump_AbstractSymbol(out, n + 2, type_decl);
 	init.dump_with_types(out, n + 2);
     }
-   
-    @Override
-    public void semant(ClassTable classTable, SymbolTable symbolTable, class_c curClass, boolean firstScan) {
-        int errorCount = 0;
-        if (symbolTable.probe(name) != null && firstScan) {
-            emitErrorAttrMultiDefined(curClass, classTable);
-            errorCount++;
-        }
-        if (!classTable.hasType(type_decl) && firstScan) {
-            emitErrorAttrUndefined(curClass, classTable);
-            type_decl = TreeConstants.No_type;
-        }
-        if (TreeConstants.self.equals(name) & firstScan) {
-            emitErrorAttrSelfName(curClass, classTable);
-            errorCount++;
-        }
 
-        if (errorCount == 0 && firstScan) {
-            symbolTable.addId(name, type_decl); 
-        }
-
-        if (!firstScan) {
-            
-            if (classTable.getFeature(name, curClass.getParent(), false) != null) {          
-                emitErrorAttrInheritClass(curClass, classTable);  
-            }
-            if (init instanceof no_expr) {  
-                return; 
-            }
-            AbstractSymbol exprType = init.semant(classTable, symbolTable, curClass).get_type(); 
-            exprType = TreeConstants.No_type.equals(exprType) ? type_decl : exprType;
-           // if return type is self, inferred return type should keep unconverted. Otherwise conver self
-
-            if (!TreeConstants.SELF_TYPE.equals(type_decl)) {
-                exprType = TreeConstants.SELF_TYPE.equals(exprType) ? curClass.getName() : exprType;
-            }
-            if (!classTable.isSubtype(exprType, type_decl)) {
-                emitErrorAttrTypeNotConform(exprType, curClass, classTable);
-            }
-        }
-    }
-
-    private void emitErrorAttrMultiDefined(class_c curClass, ClassTable classTable) {
-        classTable.semantError(curClass).println("Attribute " + name.toString() +" is multiply defined in class.");
-    }
-
-    private void emitErrorAttrUndefined(class_c curClass, ClassTable classTable) {
-        classTable.semantError(curClass).println("Class " + type_decl.toString() + 
-                                                 " of attribute " + name.toString() + " is undefined.");
-    }
-
-    private void emitErrorAttrSelfName(class_c curClass, ClassTable classTable) {
-        classTable.semantError(curClass).println("'self' cannot be the name of an attribute.");
-    }
-
-    private void emitErrorAttrInheritClass(class_c curClass, ClassTable classTable) {
-        classTable.semantError(curClass).println("Attribute " + name.toString() + " is an attribute of an inherited class.");
-    }
-
-    private void emitErrorAttrTypeNotConform(AbstractSymbol exprType, class_c curClass, ClassTable classTable) {
-        classTable.semantError(curClass).println("Inferred type " + exprType.toString() + 
-                               " of initialization of attribute " + name.toString() + 
-                               " does not conform to declared type " + type_decl.toString() + ".");
-    }
-
-    @Override
     public AbstractSymbol getName() {
         return name;
     }
-    
-    @Override 
+
     public AbstractSymbol getType() {
         return type_decl;
     }
-        
+
+    public void code(CgenNode node, CgenClassTable classTable, PrintStream s) {
+        classTable.addId(name, classTable.lookup(type_decl));
+        CgenSupport.setCurrentMethodTempVarNumber(init.getTempNumber());
+        if (init.get_type() != null) {          
+            init.code(node, classTable, 0, s);
+            int offset = classTable.getFeatureOffset(name, node.getName(), false) + CgenSupport.DEFAULT_OBJFIELDS;
+            CgenSupport.emitStore(CgenSupport.ACC, offset, CgenSupport.SELF, s);
+        }
+    }
+
+    public int getTempNumber() {
+        return init.getTempNumber();
+    }
+
 }
 
 
-/** Define AST constructor 'formalc'.
+/** Defines AST constructor 'formal'.
     <p>
     See <a href="TreeNode.html">TreeNode</a> for full documentation. */
-class formalc extends Formal {
-    protected AbstractSymbol name;
-    protected AbstractSymbol type_decl;
-    /** Cria o nó AST "formalc".
-       *
-       * @param lineNumber a linha no arquivo de origem do qual este nó veio.
-       * @param a0 valor inicial para nome
-       * @param a1 valor inicial para type_decl
+class formal extends Formal {
+    public AbstractSymbol name;
+    public AbstractSymbol type_decl;
+    /** Creates "formal" AST node. 
+      *
+      * @param lineNumber the line in the source file from which this node came.
+      * @param a0 initial value for name
+      * @param a1 initial value for type_decl
       */
-    public formalc(int lineNumber, AbstractSymbol a1, AbstractSymbol a2) {
+    public formal(int lineNumber, AbstractSymbol a1, AbstractSymbol a2) {
         super(lineNumber);
         name = a1;
         type_decl = a2;
     }
     public TreeNode copy() {
-        return new formalc(lineNumber, copy_AbstractSymbol(name), copy_AbstractSymbol(type_decl));
+        return new formal(lineNumber, copy_AbstractSymbol(name), copy_AbstractSymbol(type_decl));
     }
     public void dump(PrintStream out, int n) {
-        out.print(Utilities.pad(n) + "formalc\n");
+        out.print(Utilities.pad(n) + "formal\n");
         dump_AbstractSymbol(out, n+2, name);
         dump_AbstractSymbol(out, n+2, type_decl);
     }
@@ -671,67 +544,22 @@ class formalc extends Formal {
         dump_AbstractSymbol(out, n + 2, type_decl);
     }
 
-    public AbstractSymbol getName() {
-        return name;
-    }
-    
-    public AbstractSymbol getType() {
-        return type_decl;
-    }
-
-    @Override
-    public void semant(ClassTable classTable, SymbolTable symbolTable, class_c curClass) {
-        if (TreeConstants.SELF_TYPE.equals(type_decl)) {
-            emitErrorFormalSelfType(curClass, classTable);
-            symbolTable.addId(name, TreeConstants.No_type);
-        } else if (classTable.hasType(type_decl)) {
-            if (symbolTable.probe(name) != null) {
-                emitErrorFormalMultiDefined(curClass, classTable);
-            } else if (TreeConstants.self.equals(name)) {
-                emitErrorFormalSelfName(curClass, classTable);
-            } else {
-                symbolTable.addId(name, type_decl);
-            }
-        } else {
-            emitErrorFormalTypeUndefined(curClass, classTable);
-            symbolTable.addId(name, TreeConstants.No_type);
-        }
-    }
-
-    private void emitErrorFormalSelfType(class_c curClass, ClassTable classTable) {
-        classTable.semantError(curClass).println("Formal parameter " + name.toString() + 
-                                                 " cannot have type SELF_TYPE.");
-    }
-
-    private void emitErrorFormalMultiDefined(class_c curClass, ClassTable classTable) {
-        classTable.semantError(curClass).println("Formal parameter " + name.toString() + " is multiply defined.");
-    }
-
-    private void emitErrorFormalSelfName(class_c curClass, ClassTable classTable) {
-        classTable.semantError(curClass).println("'self' cannot be the name of a formal parameter.");
-    }
-
-    private void emitErrorFormalTypeUndefined(class_c curClass, ClassTable classTable) {
-        classTable.semantError(curClass).println(
-                   "Class " + curClass.getName().toString() + " of formal parameter " + 
-                   name.toString() + " is undefined.");
-    }
 }
 
 
-/** Define AST constructor 'branch'.
+/** Defines AST constructor 'branch'.
     <p>
     See <a href="TreeNode.html">TreeNode</a> for full documentation. */
 class branch extends Case {
-    protected AbstractSymbol name;
-    protected AbstractSymbol type_decl;
-    protected Expression expr;
-    /** Cria o nó AST "ramo".
-       *
-       * @param lineNumber a linha no arquivo de origem do qual este nó veio.
-       * @param a0 valor inicial para nome
-       * @param a1 valor inicial para type_decl
-       * @param a2 valor inicial para expr
+    public AbstractSymbol name;
+    public AbstractSymbol type_decl;
+    public Expression expr;
+    /** Creates "branch" AST node. 
+      *
+      * @param lineNumber the line in the source file from which this node came.
+      * @param a0 initial value for name
+      * @param a1 initial value for type_decl
+      * @param a2 initial value for expr
       */
     public branch(int lineNumber, AbstractSymbol a1, AbstractSymbol a2, Expression a3) {
         super(lineNumber);
@@ -758,49 +586,34 @@ class branch extends Case {
 	expr.dump_with_types(out, n + 2);
     }
 
-    @Override
-    public AbstractSymbol semant(ClassTable classTable, SymbolTable symbolTable, class_c curClass) {
-         AbstractSymbol retType = TreeConstants.Object_;
-         if (!classTable.hasType(type_decl)) {
-             emitErrorBranchTypeUndefined(curClass, classTable);
-         } else if (TreeConstants.SELF_TYPE.equals(type_decl)) {
-             emitErrorBranchIdSelfType(curClass, classTable);
-         } else {
-             symbolTable.enterScope();
-             symbolTable.addId(name, type_decl);
-             retType = expr.semant(classTable, symbolTable, curClass).get_type();
-             symbolTable.exitScope();
-             return retType;
-         }
-         return TreeConstants.No_type;
+    public int getTempNumber() {
+        return expr.getTempNumber();
     }
-    
-    @Override
+
+    public void code(CgenNode node, CgenClassTable classTable, int curTemp, PrintStream s) {
+        classTable.enterScope();
+        classTable.addId(name, new Integer(curTemp));
+        expr.code(node, classTable, CgenSupport.getCurrentMethodTempVarNumber() - curTemp, s);
+        classTable.exitScope();
+    }
+
     public AbstractSymbol getType() {
         return type_decl;
-    }
-
-    private void emitErrorBranchTypeUndefined(class_c curClass, ClassTable classTable) {
-        classTable.semantError(curClass).println("Class " + type_decl.toString() + " of case branch is undefined.");
-    }
-
-    private void emitErrorBranchIdSelfType(class_c curClass, ClassTable classTable) {
-        classTable.semantError(curClass).println("Identifier " + name.toString() + " declared with type SELF_TYPE in case branch.");
     }
 }
 
 
-/** Define AST constructor 'assign'.
+/** Defines AST constructor 'assign'.
     <p>
     See <a href="TreeNode.html">TreeNode</a> for full documentation. */
 class assign extends Expression {
-    protected AbstractSymbol name;
-    protected Expression expr;
-    /** Cria o nó AST "assign".
-       *
-       * @param lineNumber a linha no arquivo de origem do qual este nó veio.
-       * @param a0 valor inicial para nome
-       * @param a1 valor inicial para expr
+    public AbstractSymbol name;
+    public Expression expr;
+    /** Creates "assign" AST node. 
+      *
+      * @param lineNumber the line in the source file from which this node came.
+      * @param a0 initial value for name
+      * @param a1 initial value for expr
       */
     public assign(int lineNumber, AbstractSymbol a1, Expression a2) {
         super(lineNumber);
@@ -816,7 +629,6 @@ class assign extends Expression {
         expr.dump(out, n+2);
     }
 
-    
     public void dump_with_types(PrintStream out, int n) {
         dump_line(out, n);
         out.println(Utilities.pad(n) + "_assign");
@@ -824,66 +636,49 @@ class assign extends Expression {
 	expr.dump_with_types(out, n + 2);
 	dump_type(out, n);
     }
-
-    @Override
-    public Expression semant(ClassTable classTable, SymbolTable symbolTable, class_c curClass) {
-        if (TreeConstants.self.equals(name)) {
-            emitErrorAssignSelf(curClass, classTable);
-            return set_type(TreeConstants.No_type);
+    /** Generates code for this expression.  This method is to be completed 
+      * in programming assignment 5.  (You may add or remove parameters as
+      * you wish.)
+      * @param s the output stream 
+      * */
+    public void code(CgenNode node, CgenClassTable classTable, int curTemp, PrintStream s) {
+        int curTempVarNumber = CgenSupport.getCurrentMethodTempVarNumber();
+        int stackSize = CgenSupport.DEFAULT_OBJFIELDS; // + curTempVarNumber;
+        
+        expr.code(node, classTable, curTemp, s);
+        int offset = 0;
+        if (classTable.lookup(name) instanceof Integer) {
+            offset = ((Integer) classTable.lookup(name)).intValue();
+            CgenSupport.emitStore(CgenSupport.ACC, offset, CgenSupport.FP, s);
+        } else {
+            offset = classTable.getFeatureOffset(name, node.getName(), false) + stackSize;
+            CgenSupport.emitStore(CgenSupport.ACC, offset, CgenSupport.SELF, s);
         }
-
-        AbstractSymbol assignType = (AbstractSymbol)symbolTable.lookup(name);
-        AbstractSymbol exprType = expr.semant(classTable, symbolTable, curClass).get_type();
-        if (assignType == null) {
-            Feature attrFeature = classTable.getFeature(name, curClass.getName(), false);
-            if (attrFeature != null) {
-                assignType = attrFeature.getType();
-            } else {
-                emitErrorAssignUndeclaredVar(curClass, classTable);
-            }
-        }
-     
-        if (assignType != null) {          
-            if (!classTable.isSubtype(exprType, assignType)) {
-                emitErrorAssignTypeNotConform(exprType, assignType, curClass, classTable);
-            } else {
-                return set_type(assignType);
-            }
-        }    
-        return set_type(TreeConstants.No_type);        
     }
 
-    private void emitErrorAssignSelf(class_c curClass, ClassTable classTable) {
-        classTable.semantError(curClass).println("Cannot assign to 'self'.");
+    public int getTempNumber() {
+        return expr.getTempNumber();
     }
 
-    private void emitErrorAssignUndeclaredVar(class_c curClass, ClassTable classTable) {
-        classTable.semantError(curClass).println("Assignment to undeclared variable "+ name.toString() +".");
-    }
 
-    private void emitErrorAssignTypeNotConform(AbstractSymbol exprType, AbstractSymbol assignType, class_c curClass, ClassTable classTable) {
-        classTable.semantError(curClass).println("Type " + exprType.toString() + 
-                     " of assigned expression does not conform to declared type " + assignType.toString() +
-                     " of identifier " + name.toString() + ".");
-    }
 }
 
 
-/** Define AST constructor 'static_dispatch'.
+/** Defines AST constructor 'static_dispatch'.
     <p>
     See <a href="TreeNode.html">TreeNode</a> for full documentation. */
 class static_dispatch extends Expression {
-    protected Expression expr;
-    protected AbstractSymbol type_name;
-    protected AbstractSymbol name;
-    protected Expressions actual;
-    /** Cria o nó AST "static_dispatch".
-       *
-       * @param lineNumber a linha no arquivo de origem do qual este nó veio.
-       * @param a0 valor inicial para expr
-       * @param a1 valor inicial para type_name
-       * @param a2 valor inicial para nome
-       * @param a3 valor inicial para reais
+    public Expression expr;
+    public AbstractSymbol type_name;
+    public AbstractSymbol name;
+    public Expressions actual;
+    /** Creates "static_dispatch" AST node. 
+      *
+      * @param lineNumber the line in the source file from which this node came.
+      * @param a0 initial value for expr
+      * @param a1 initial value for type_name
+      * @param a2 initial value for name
+      * @param a3 initial value for actual
       */
     public static_dispatch(int lineNumber, Expression a1, AbstractSymbol a2, AbstractSymbol a3, Expressions a4) {
         super(lineNumber);
@@ -903,7 +698,6 @@ class static_dispatch extends Expression {
         actual.dump(out, n+2);
     }
 
-    
     public void dump_with_types(PrintStream out, int n) {
         dump_line(out, n);
         out.println(Utilities.pad(n) + "_static_dispatch");
@@ -917,83 +711,66 @@ class static_dispatch extends Expression {
         out.println(Utilities.pad(n + 2) + ")");
 	dump_type(out, n);
     }
-
-    @Override
-    public Expression semant(ClassTable classTable, SymbolTable symbolTable, class_c curClass) {
-        AbstractSymbol exprType;
-        method dispatchMethod = null;
-
-        exprType = expr.semant(classTable, symbolTable, curClass).get_type();
-        if (!classTable.isSubtype(exprType, type_name)) {
-            emitErrorExprTypeNotConform(exprType, curClass, classTable);
+    /** Generates code for this expression.  This method is to be completed 
+      * in programming assignment 5.  (You may add or remove parameters as
+      * you wish.)
+      * @param s the output stream 
+      * */
+    public void code(CgenNode node, CgenClassTable classTable, int curTemp, PrintStream s) {
+        AbstractSymbol dispType = type_name;
+        if (TreeConstants.SELF_TYPE.equals(dispType)) { 
+            dispType = node.getName();
         }
-        if (TreeConstants.SELF_TYPE.equals(type_name)) {
-            emitErrorDispatchSelf(curClass, classTable);
-            type_name = TreeConstants.No_type;
+        int tempVar = 0;
+        for (Enumeration e = actual.getElements(); e.hasMoreElements();) {
+            Expression actualExpr = (Expression) e.nextElement();
+            actualExpr.code(node, classTable, curTemp, s);
+            tempVar = actualExpr.getTempNumber();  
+            curTemp = CgenSupport.max(curTemp, tempVar); 
+            CgenSupport.emitPush(CgenSupport.ACC, s);
         }
-        // procura por métodos despachados em classes ancestrais se type for self
-        dispatchMethod = (method) classTable.getFeature(name, type_name, true);
-        if (dispatchMethod == null) {
-            emitErrorDispatchUndefinedMethod(curClass, classTable);
-        } else {
-            if (actual.getLength() != dispatchMethod.getFormals().getLength()) {
-                emitErrorWrongArguments(curClass, classTable);
-            } else {
-                Enumeration d = dispatchMethod.getFormals().getElements();
-                for (Enumeration e = actual.getElements(); e.hasMoreElements();) {     
-                    Formal decl = (Formal) d.nextElement();     
-                    AbstractSymbol actualType = ((Expression) e.nextElement())
-                                                .semant(classTable, symbolTable, curClass).get_type();            
-                    AbstractSymbol evalActualType = 
-                                   TreeConstants.SELF_TYPE.equals(actualType) ? curClass.getName() : actualType;
-                    if (!classTable.isSubtype(evalActualType, decl.getType())) { 
-                        emitErrorMethodTypeNotConform(decl, actualType, curClass, classTable);
-                    }
-                }
-                AbstractSymbol retType = dispatchMethod.getType();
-                if (TreeConstants.SELF_TYPE.equals(retType)) {
-                    retType = type_name;
-                }
-                return set_type(retType);
-            }
+
+        int voidLabel = CgenSupport.getLabel();
+        CgenSupport.emitBeqz(CgenSupport.ACC, voidLabel, s);
+
+        expr.code(node, classTable, curTemp, s);
+        int label = CgenSupport.getLabel();
+
+        if (dispType.equals(node.getName()) || TreeConstants.SELF_TYPE.equals(expr.get_type())) {
+            CgenSupport.emitMove(CgenSupport.ACC, CgenSupport.SELF, s);
         }
-        return set_type(TreeConstants.No_type);
+       
+        CgenSupport.emitLabelDef(voidLabel, s);
+        CgenSupport.emitAbort(label, getLineNumber(), (StringSymbol) node.getFilename(), CgenSupport.DISPATCH_ABORT, s);
+        
+        CgenSupport.emitLabelDef(label, s);
+        CgenSupport.emitPartialLoadAddress(CgenSupport.T1, s);
+        s.println(dispType + CgenSupport.DISPTAB_SUFFIX);
+        int offset = classTable.getFeatureOffset(name, dispType, true);
+        CgenSupport.emitLoad(CgenSupport.T1, offset, CgenSupport.T1, s);
+        CgenSupport.emitJalr(CgenSupport.T1, s);
     }
 
-    private void emitErrorExprTypeNotConform(AbstractSymbol exprType, class_c curClass, ClassTable classTable) {
-        classTable.semantError(curClass).println("Expression type " + exprType.toString() + 
-                 " does not conform to declared static dispatch type " + type_name.toString() + ".");
+    public int getTempNumber() {
+        int result = expr.getTempNumber();
+        for (Enumeration e = actual.getElements(); e.hasMoreElements();) {
+            int temp = ((Expression) e.nextElement()).getTempNumber();
+            result = result > temp ? result : temp;
+        }
+        return result;
     }
 
-    private void emitErrorDispatchSelf(class_c curClass, ClassTable classTable) {
-        classTable.semantError(curClass).println("Static dispatch to SELF_TYPE.");
-    }
 
-    private void emitErrorDispatchUndefinedMethod(class_c curClass, ClassTable classTable) {
-        classTable.semantError(curClass).println("Dispatch to undefined method " + name.toString() + ".");
-    }
-   
-    private void emitErrorWrongArguments(class_c curClass, ClassTable classTable) {
-        classTable.semantError(curClass).println("Method " + name.toString() + 
-                                                 " called with wrong number of arguments.");
-    }
-
-    private void emitErrorMethodTypeNotConform(Formal decl, AbstractSymbol actualType, class_c curClass, ClassTable classTable) {
-        classTable.semantError(curClass).println("In call of method " +
-                   name.toString() + ", type " + actualType.toString() + " of parameter " +
-                   decl.getName().toString() + " does not conform to declared type " + 
-                   decl.getType().toString() + ".");
-    }
 }
 
 
-/** Define AST constructor 'dispatch'.
+/** Defines AST constructor 'dispatch'.
     <p>
     See <a href="TreeNode.html">TreeNode</a> for full documentation. */
 class dispatch extends Expression {
-    protected Expression expr;
-    protected AbstractSymbol name;
-    protected Expressions actual;
+    public Expression expr;
+    public AbstractSymbol name;
+    public Expressions actual;
     /** Creates "dispatch" AST node. 
       *
       * @param lineNumber the line in the source file from which this node came.
@@ -1030,81 +807,67 @@ class dispatch extends Expression {
         out.println(Utilities.pad(n + 2) + ")");
 	dump_type(out, n);
     }
+    /** Generates code for this expression.  This method is to be completed 
+      * in programming assignment 5.  (You may add or remove parameters as
+      * you wish.)
+      * @param s the output stream 
+      * */
+    public void code(CgenNode node, CgenClassTable classTable, int curTemp, PrintStream s) {
+        AbstractSymbol dispType = expr instanceof no_expr ? node.getName() : expr.get_type();
+        dispType = TreeConstants.SELF_TYPE.equals(dispType) ? node.getName() : dispType;
 
-    @Override
-    public Expression semant(ClassTable classTable, SymbolTable symbolTable, class_c curClass) {
-        AbstractSymbol exprType;
-        method dispatchMethod = null;
-
-        if (expr instanceof no_expr) {
-            exprType = TreeConstants.SELF_TYPE;
-        } else {
-            exprType = expr.semant(classTable, symbolTable, curClass).get_type();
+        int tempVar = 0;
+        for (Enumeration e = actual.getElements(); e.hasMoreElements();) {
+            Expression actualExpr = (Expression) e.nextElement();
+            actualExpr.code(node, classTable, curTemp, s);
+            tempVar = actualExpr.getTempNumber();  
+            curTemp = CgenSupport.max(curTemp, tempVar); 
+            CgenSupport.emitPush(CgenSupport.ACC, s);
         }
-        AbstractSymbol className = TreeConstants.SELF_TYPE.equals(exprType) ? curClass.getName() : exprType;
-        dispatchMethod = (method) classTable.getFeature(name, className, true);
-        if (dispatchMethod == null) {
-            emitErrorDispatchUndefinedMethod(curClass, classTable);
-        } else {
-            if (actual.getLength() != dispatchMethod.getFormals().getLength()) {
-                emitErrorWrongArguments(curClass, classTable);
-            } else { 
-                Enumeration d = dispatchMethod.getFormals().getElements();
-                for (Enumeration e = actual.getElements(); e.hasMoreElements();) {          
-                    AbstractSymbol actualType = ((Expression) e.nextElement()).semant(classTable, symbolTable, curClass).get_type();
-                    Formal decl = (Formal) d.nextElement();            
-                    AbstractSymbol evalActualType = TreeConstants.SELF_TYPE.equals(actualType) ? curClass.getName() : actualType;
-                    if (!classTable.isSubtype(evalActualType, decl.getType())) { 
-                        emitErrorMethodTypeNotConform(decl, actualType, curClass, classTable);
-                    } 
-                }
-                // se o tipo de método é self, então retorna o tipo expr
-                 // ou o tipo de retorno expr é self e dispatchMathod está na classe ancestral
-                 // Esta parte é para lidar com new-self-dispatch.cl. Ao despachar métodos com self como tipo de retorno,
-                 // o tipo expr do chamador é crucial para determinar o tipo de retorno real do método.
-                 // o tipo de retorno declarado é ignorado. Este truque faz o auto tipo se propagar livremente entre as classes com herança
-                AbstractSymbol retType = dispatchMethod.getType();
-                if (TreeConstants.SELF_TYPE.equals(retType)) { 
-                    retType = exprType;
-                }
-                return set_type(retType);
-            }
+
+        expr.code(node, classTable, curTemp, s);
+        int voidLabel = CgenSupport.getLabel();
+        CgenSupport.emitBeqz(CgenSupport.ACC, voidLabel, s);
+
+        int label = CgenSupport.getLabel();
+
+        if (TreeConstants.SELF_TYPE.equals(expr.get_type())) {
+            CgenSupport.emitMove(CgenSupport.ACC, CgenSupport.SELF, s);
         }
-        return set_type(TreeConstants.No_type);
+        CgenSupport.emitLabelDef(voidLabel, s);
+        CgenSupport.emitAbort(label, getLineNumber(), (StringSymbol) node.getFilename(), CgenSupport.DISPATCH_ABORT, s);
+        
+        CgenSupport.emitLabelDef(label, s);
+        CgenSupport.emitLoad(CgenSupport.T1, CgenSupport.DISPTABLE_OFFSET, CgenSupport.ACC, s);
+        int offset = classTable.getFeatureOffset(name, dispType, true);
+        CgenSupport.emitLoad(CgenSupport.T1, offset, CgenSupport.T1, s);
+        CgenSupport.emitJalr(CgenSupport.T1, s);
     }
 
-    private void emitErrorDispatchUndefinedMethod(class_c curClass, ClassTable classTable) {
-        classTable.semantError(curClass).println("Dispatch to undefined method " + name.toString() + ".");
+    public int getTempNumber() {
+        int result = expr.getTempNumber();
+        for (Enumeration e = actual.getElements(); e.hasMoreElements();) {
+            int temp = ((Expression) e.nextElement()).getTempNumber();
+            result = CgenSupport.max(result, temp);
+        }
+        return result;
     }
-
-    private void emitErrorWrongArguments(class_c curClass, ClassTable classTable) {
-        classTable.semantError(curClass).println("Method " + name.toString() + 
-                                                 " called with wrong number of arguments.");
-    }
-
-    private void emitErrorMethodTypeNotConform(Formal decl, AbstractSymbol actualType, class_c curClass, ClassTable classTable) {
-        classTable.semantError(curClass).println("In call of method " +
-                   name.toString() + ", type " + actualType.toString() + " of parameter " +
-                   decl.getName().toString() + " does not conform to declared type " + 
-                   decl.getType().toString() + ".");
-    }
-
 }
 
 
-/** Define AST constructor 'cond'.
+/** Defines AST constructor 'cond'.
     <p>
     See <a href="TreeNode.html">TreeNode</a> for full documentation. */
 class cond extends Expression {
-    protected Expression pred;
-    protected Expression then_exp;
-    protected Expression else_exp;
-    /** Cria o nó AST "cond".
-       *
-       * @param lineNumber a linha no arquivo de origem do qual este nó veio.
-       * @param a0 valor inicial para pred
-       * @param a1 valor inicial para then_exp
-       * @param valor inicial de a2 para else_exp
+    public Expression pred;
+    public Expression then_exp;
+    public Expression else_exp;
+    /** Creates "cond" AST node. 
+      *
+      * @param lineNumber the line in the source file from which this node came.
+      * @param a0 initial value for pred
+      * @param a1 initial value for then_exp
+      * @param a2 initial value for else_exp
       */
     public cond(int lineNumber, Expression a1, Expression a2, Expression a3) {
         super(lineNumber);
@@ -1131,37 +894,46 @@ class cond extends Expression {
 	else_exp.dump_with_types(out, n + 2);
 	dump_type(out, n);
     }
+    /** Generates code for this expression.  This method is to be completed 
+      * in programming assignment 5.  (You may add or remove parameters as
+      * you wish.)
+      * @param s the output stream 
+      * */
+    public void code(CgenNode node, CgenClassTable classTable, int curTemp, PrintStream s) {
+        pred.code(node, classTable, curTemp, s);
+        int labelBranch = CgenSupport.getLabel();
+        int labelEnd = CgenSupport.getLabel();
 
-    @Override
-    public Expression semant(ClassTable classTable, SymbolTable symbolTable, class_c curClass) {
-        AbstractSymbol predType = pred.semant(classTable, symbolTable, curClass).get_type();
-        if (!TreeConstants.Bool.equals(predType)) {
-            emitErrorNotBool(curClass, classTable);
-
-        }
-        AbstractSymbol thenType = then_exp.semant(classTable, symbolTable, curClass).get_type();
-        AbstractSymbol elseType = else_exp.semant(classTable, symbolTable, curClass).get_type();
-        return set_type(classTable.getLub(thenType, elseType));
+        CgenSupport.emitLoad(CgenSupport.T1, CgenSupport.DEFAULT_OBJFIELDS, CgenSupport.ACC, s);
+        CgenSupport.emitBeqz(CgenSupport.T1, labelBranch, s);
+        then_exp.code(node, classTable, curTemp, s);
+        CgenSupport.emitBranch(labelEnd, s);
+        CgenSupport.emitLabelDef(labelBranch, s);
+        else_exp.code(node, classTable, curTemp, s);
+        CgenSupport.emitLabelDef(labelEnd, s);
     }
 
-    private void emitErrorNotBool(class_c curClass, ClassTable classTable) {
-        classTable.semantError(curClass).println("Predicate of 'if' does not have type Bool.");
+    public int getTempNumber() {
+        int countThen = then_exp.getTempNumber();
+        int countElse = else_exp.getTempNumber();
+        int countPred = pred.getTempNumber();
+        int max = countThen > countElse ? countThen : countElse;
+        return CgenSupport.max(countPred, max);
     }
-
 }
 
 
-/** Define AST constructor 'loop'.
+/** Defines AST constructor 'loop'.
     <p>
     See <a href="TreeNode.html">TreeNode</a> for full documentation. */
 class loop extends Expression {
-    protected Expression pred;
-    protected Expression body;
-    /** Cria o nó AST "loop".
-       *
-       * @param lineNumber a linha no arquivo de origem do qual este nó veio.
-       * @param a0 valor inicial para pred
-       * @param a1 valor inicial para o corpo
+    public Expression pred;
+    public Expression body;
+    /** Creates "loop" AST node. 
+      *
+      * @param lineNumber the line in the source file from which this node came.
+      * @param a0 initial value for pred
+      * @param a1 initial value for body
       */
     public loop(int lineNumber, Expression a1, Expression a2) {
         super(lineNumber);
@@ -1185,36 +957,42 @@ class loop extends Expression {
 	body.dump_with_types(out, n + 2);
 	dump_type(out, n);
     }
-
-    @Override
-    public Expression semant(ClassTable classTable, SymbolTable symbolTable, class_c curClass) {
-        AbstractSymbol predType = pred.semant(classTable, symbolTable, curClass).get_type();
-        if (!TreeConstants.Bool.equals(predType)) {
-            emitErrorNotBool(curClass, classTable);
-            
-        }
-        body.semant(classTable, symbolTable, curClass);
-        return set_type(TreeConstants.Object_);
+    /** Generates code for this expression.  This method is to be completed 
+      * in programming assignment 5.  (You may add or remove parameters as
+      * you wish.)
+      * @param s the output stream 
+      * */
+    public void code(CgenNode node, CgenClassTable classTable, int curTemp, PrintStream s) {
+        int labelPred = CgenSupport.getLabel();
+        int labelCond = CgenSupport.getLabel();
+        CgenSupport.emitLabelDef(labelPred, s);
+        pred.code(node, classTable, curTemp, s);
+        CgenSupport.emitLoad(CgenSupport.T1, CgenSupport.DEFAULT_OBJFIELDS, CgenSupport.ACC, s);
+        CgenSupport.emitBeq(CgenSupport.T1, CgenSupport.ZERO, labelCond, s);
+        body.code(node, classTable, curTemp, s);
+        CgenSupport.emitBranch(labelPred, s);
+        CgenSupport.emitLabelDef(labelCond, s);
+        CgenSupport.emitMove(CgenSupport.ACC, CgenSupport.ZERO, s);
     }
 
-    private void emitErrorNotBool(class_c curClass, ClassTable classTable) {
-        classTable.semantError(curClass).println("Loop condition does not have type Bool.");
+    public int getTempNumber() {
+        return CgenSupport.max(pred.getTempNumber(), body.getTempNumber());
     }
 
 }
 
 
-/** Define AST constructor 'typcase'.
+/** Defines AST constructor 'typcase'.
     <p>
     See <a href="TreeNode.html">TreeNode</a> for full documentation. */
 class typcase extends Expression {
-    protected Expression expr;
-    protected Cases cases;
-    /**Cria o nó AST "typcase".
-       *
-       * @param lineNumber a linha no arquivo de origem do qual este nó veio.
-       * @param a0 valor inicial para expr
-       * @param a1 valor inicial para casos
+    public Expression expr;
+    public Cases cases;
+    /** Creates "typcase" AST node. 
+      *
+      * @param lineNumber the line in the source file from which this node came.
+      * @param a0 initial value for expr
+      * @param a1 initial value for cases
       */
     public typcase(int lineNumber, Expression a1, Cases a2) {
         super(lineNumber);
@@ -1240,52 +1018,93 @@ class typcase extends Expression {
         }
 	dump_type(out, n);
     }
-
-    @Override
-    public Expression semant(ClassTable classTable, SymbolTable symbolTable, class_c curClass) {
-        AbstractSymbol exprType = expr.semant(classTable, symbolTable, curClass).get_type();
-        AbstractSymbol lubCaseType = TreeConstants.Object_;
-        AbstractSymbol retType = TreeConstants.Object_;
-        Set<AbstractSymbol> typeSet = new HashSet<AbstractSymbol>();
-
-        exprType = TreeConstants.SELF_TYPE.equals(exprType) ? curClass.getName() : exprType;
-        exprType = TreeConstants.No_type.equals(exprType) ? TreeConstants.Object_ : exprType;        
-
-        for (Enumeration e = cases.getElements(); e.hasMoreElements();) {
-            Case branch = (Case) e.nextElement();
-            AbstractSymbol curCaseType = branch.getType();
-            AbstractSymbol curRetType = branch.semant(classTable, symbolTable, curClass);
-            
-            if (typeSet.contains(curCaseType)) {
-                emitErrorDuplicateBranch(curCaseType, curClass, classTable);             
-                continue;
+    /** Generates code for this expression.  This method is to be completed 
+      * in programming assignment 5.  (You may add or remove parameters as
+      * you wish.)
+      * @param s the output stream 
+      * */
+    public void code(CgenNode node, CgenClassTable classTable, int curTemp, PrintStream s) {
+        expr.code(node, classTable, curTemp, s);
+        CgenSupport.emitStore(CgenSupport.ACC, curTemp, CgenSupport.FP, s);
+        curTemp = CgenSupport.max(curTemp, expr.getTempNumber() - 1);
+        int label = CgenSupport.getLabel();
+        int noMatchLabel = CgenSupport.getLabel();
+        int caseLabel = CgenSupport.getLabel();
+        
+        List<Case> branchTypes = getTagSortedBranches(classTable);
+        CgenSupport.emitAbort(caseLabel, getLineNumber(), (StringSymbol) node.getFilename(), CgenSupport.CASE_ABORT2, s);
+        int count = 0;
+        for (Case caseBranch : branchTypes) {
+            CgenSupport.emitLabelDef(caseLabel, s);
+            if (count == branchTypes.size() - 1) {
+                caseLabel = noMatchLabel;
             } else {
-                typeSet.add(curCaseType);
+                caseLabel = CgenSupport.getLabel();
             }
-            if (classTable.isSubtype(exprType, curCaseType) && classTable.isSubtype(curCaseType, lubCaseType)) {
-                lubCaseType = curCaseType;
-                retType = curRetType;
-            }   
+            count++;
+            int typeTag = classTable.getTypeTag(caseBranch.getType());
+            CgenSupport.emitLoad(CgenSupport.T2, 0, CgenSupport.ACC, s);
+            CgenSupport.emitBlti(CgenSupport.T2, typeTag, caseLabel, s);
+            CgenSupport.emitBgti(CgenSupport.T2, getLowestSubtypeTag(caseBranch.getType(), classTable), caseLabel, s);
+            caseBranch.code(node, classTable, curTemp, s);
+            CgenSupport.emitBranch(label, s);
         }
-        return set_type(retType);
+        CgenSupport.emitLabelDef(noMatchLabel, s);
+        CgenSupport.emitJal(CgenSupport.CASE_ABORT, s);
+        CgenSupport.emitLabelDef(label, s);
     }
 
-    private void emitErrorDuplicateBranch(AbstractSymbol curCaseType, class_c curClass, ClassTable classTable) {
-        classTable.semantError(curClass).println("Duplicate branch " + curCaseType.toString() + " in case statement.");
+    private List<Case> getTagSortedBranches(CgenClassTable classTable) {
+        List<Case> result = new ArrayList<Case>();
+        for (int i = 0; i < classTable.getClassTableSize(); i++) {
+            if (result.size() == classTable.getClassTableSize()) { break; }
+            for (Enumeration e = cases.getElements(); e.hasMoreElements();) {
+                Case caseBranch = (Case) e.nextElement();
+                AbstractSymbol type = caseBranch.getType();
+                int typeTag = classTable.getTypeTag(type);
+                int lowestTag = getLowestSubtypeTag(type, classTable);
+                int distTag = lowestTag - typeTag;
+                if (distTag == i) {
+                    result.add(caseBranch);
+                }
+            }
+        }
+        return result;
     }
 
+    private List<Case> getBranches(CgenClassTable classTable) { 
+        List<Case> result = new ArrayList<Case>();
+        for (Enumeration e = cases.getElements(); e.hasMoreElements();) {
+            result.add((Case) e.nextElement());           
+        }
+        return result;
+    }
+
+    private int getLowestSubtypeTag(AbstractSymbol curType, CgenClassTable classTable) {
+        AbstractSymbol type = classTable.getLowestSubtype(curType);
+        return classTable.getTypeTag(type);
+    }
+
+    public int getTempNumber() {
+        int result = CgenSupport.max(expr.getTempNumber(), 1);
+        for (Enumeration e = cases.getElements(); e.hasMoreElements();) { 
+            int numCase = ((Case) e.nextElement()).getTempNumber();
+            result = CgenSupport.max(result, numCase + 1);
+        }
+        return result;
+    }
 }
 
 
-/** Define AST constructor 'block'.
+/** Defines AST constructor 'block'.
     <p>
     See <a href="TreeNode.html">TreeNode</a> for full documentation. */
 class block extends Expression {
-    protected Expressions body;
-    /** Cria o nó AST "bloco".
-       *
-       * @param lineNumber a linha no arquivo de origem do qual este nó veio.
-       * @param a0 valor inicial para o corpo
+    public Expressions body;
+    /** Creates "block" AST node. 
+      *
+      * @param lineNumber the line in the source file from which this node came.
+      * @param a0 initial value for body
       */
     public block(int lineNumber, Expressions a1) {
         super(lineNumber);
@@ -1308,37 +1127,44 @@ class block extends Expression {
         }
 	dump_type(out, n);
     }
-
-    @Override
-    public Expression semant(ClassTable classTable, SymbolTable symbolTable, class_c curClass) {
-        Expression lastExpr;
-        AbstractSymbol blockType = TreeConstants.No_type;
-        if (body.getLength() == 0 ) { return set_type(blockType); }
-        for (Enumeration exprs = body.getElements(); exprs.hasMoreElements();) {
-            lastExpr = (Expression) exprs.nextElement();
-            blockType = lastExpr.semant(classTable, symbolTable, curClass).get_type();       
+    /** Generates code for this expression.  This method is to be completed 
+      * in programming assignment 5.  (You may add or remove parameters as
+      * you wish.)
+      * @param s the output stream 
+      * */
+    public void code(CgenNode node, CgenClassTable classTable, int curTemp, PrintStream s) {
+        for (Enumeration e = body.getElements(); e.hasMoreElements();) {
+            Expression expr = (Expression) e.nextElement();
+            expr.code(node, classTable, curTemp, s);
         }
-        return set_type(blockType);
     }
 
+    public int getTempNumber() {
+        int result = 0;
+        for (Enumeration e = body.getElements(); e.hasMoreElements();) {
+            int temp = ((Expression) e.nextElement()).getTempNumber();
+            result = CgenSupport.max(result, temp);
+        }
+        return result;
+    }
 }
 
 
-/** Define AST constructor 'let'.
+/** Defines AST constructor 'let'.
     <p>
     See <a href="TreeNode.html">TreeNode</a> for full documentation. */
 class let extends Expression {
-    protected AbstractSymbol identifier;
-    protected AbstractSymbol type_decl;
-    protected Expression init;
-    protected Expression body;
-    /** Cria o nó "let" AST.
-       *
-       * @param lineNumber a linha no arquivo de origem do qual este nó veio.
-       * @param a0 valor inicial para o identificador
-       * @param a1 valor inicial para type_decl
-       * valor inicial de @param a2 para init
-       * @param a3 valor inicial para o corpo
+    public AbstractSymbol identifier;
+    public AbstractSymbol type_decl;
+    public Expression init;
+    public Expression body;
+    /** Creates "let" AST node. 
+      *
+      * @param lineNumber the line in the source file from which this node came.
+      * @param a0 initial value for identifier
+      * @param a1 initial value for type_decl
+      * @param a2 initial value for init
+      * @param a3 initial value for body
       */
     public let(int lineNumber, AbstractSymbol a1, AbstractSymbol a2, Expression a3, Expression a4) {
         super(lineNumber);
@@ -1368,68 +1194,44 @@ class let extends Expression {
 	body.dump_with_types(out, n + 2);
 	dump_type(out, n);
     }
-
-    @Override
-    public Expression semant(ClassTable classTable, SymbolTable symbolTable, class_c curClass) {
-        symbolTable.enterScope();
-        if (TreeConstants.self.equals(identifier)) { 
-            emitErrorBoundSelf(curClass, classTable);
+    /** Generates code for this expression.  This method is to be completed 
+      * in programming assignment 5.  (You may add or remove parameters as
+      * you wish.)
+      * @param s the output stream 
+      * */
+    public void code(CgenNode node, CgenClassTable classTable, int curTemp, PrintStream s) {
+        int tempVarNumber = CgenSupport.getCurrentMethodTempVarNumber();
+        classTable.enterScope();
+        if (init instanceof no_expr) {
+            CgenSupport.initVar(type_decl, s); 
         } else {
-            if (!classTable.hasType(type_decl)) {
-                emitErrorIdUndefined(curClass, classTable);
-                type_decl = TreeConstants.No_type;
-            }
-            if (!(init instanceof no_expr)) {
-                AbstractSymbol initType = init.semant(classTable, symbolTable, curClass).get_type();
-                if ((TreeConstants.SELF_TYPE.equals(type_decl) || TreeConstants.SELF_TYPE.equals(initType)) && 
-                     !type_decl.equals(initType) && !TreeConstants.No_type.equals(type_decl) && 
-                     !TreeConstants.No_type.equals(initType)) {
-                    emitErrorInitTypeNotConform(initType, curClass, classTable);
-                }
-                type_decl = TreeConstants.No_type.equals(type_decl) ? TreeConstants.Object_ : type_decl;
-                initType = TreeConstants.No_type.equals(initType) ? type_decl : initType;
-                if (!classTable.isSubtype(initType, type_decl)) {
-                    emitErrorInitTypeNotConform(initType, curClass, classTable);
-                    type_decl = TreeConstants.No_type;
-                }
-            }
-            symbolTable.addId(identifier, type_decl);
-        } 
-         
-        AbstractSymbol letExprType = body.semant(classTable, symbolTable, curClass).get_type(); 
-        symbolTable.exitScope();
+            init.code(node, classTable, curTemp, s);
+        }
+        classTable.addId(identifier, new Integer(curTemp));
+        CgenSupport.emitStore(CgenSupport.ACC, curTemp, CgenSupport.FP, s);
+        curTemp++;
 
-        return set_type(letExprType); 
-    } 
-
-    private void emitErrorBoundSelf(class_c curClass, ClassTable classTable) {
-        classTable.semantError(curClass).println("'self' cannot be bound in a 'let' expression.");
+        body.code(node, classTable, curTemp, s);
+        classTable.exitScope();
     }
 
-    private void emitErrorIdUndefined(class_c curClass, ClassTable classTable) {
-        classTable.semantError(curClass).println("Class " + type_decl.toString() + 
-                                         " of let-bound identifier " + identifier.toString() + " is undefined.");
+    public int getTempNumber() {
+        return CgenSupport.max(init.getTempNumber(), body.getTempNumber() + 1);
     }
-
-    private void emitErrorInitTypeNotConform(AbstractSymbol initType, class_c curClass, ClassTable classTable) {
-        classTable.semantError(curClass).println("Inferred type " + initType.toString() + 
-                                         " of initialization of " + identifier.toString() + 
-                                         " does not conform to identifier's declared type " + type_decl.toString() + ".");
-    }          
 }
 
 
-/** Define AST constructor 'plus'.
+/** Defines AST constructor 'plus'.
     <p>
     See <a href="TreeNode.html">TreeNode</a> for full documentation. */
 class plus extends Expression {
-    protected Expression e1;
-    protected Expression e2;
-    /**Cria o nó "mais" AST.
-       *
-       * @param lineNumber a linha no arquivo de origem do qual este nó veio.
-       * @param a0 valor inicial para e1
-       * @param a1 valor inicial para e2
+    public Expression e1;
+    public Expression e2;
+    /** Creates "plus" AST node. 
+      *
+      * @param lineNumber the line in the source file from which this node came.
+      * @param a0 initial value for e1
+      * @param a1 initial value for e2
       */
     public plus(int lineNumber, Expression a1, Expression a2) {
         super(lineNumber);
@@ -1453,39 +1255,55 @@ class plus extends Expression {
 	e2.dump_with_types(out, n + 2);
 	dump_type(out, n);
     }
-
-    @Override
-    public Expression semant(ClassTable classTable, SymbolTable symbolTable, class_c curClass) {
-        AbstractSymbol leftType, rightType;
-        leftType = e1.semant(classTable, symbolTable, curClass).get_type();
-        rightType = e2.semant(classTable, symbolTable, curClass).get_type(); 
-        if (leftType.equals(TreeConstants.Int) && rightType.equals(TreeConstants.Int)) {
-            return set_type(TreeConstants.Int);
+    /** Generates code for this expression.  This method is to be completed 
+      * in programming assignment 5.  (You may add or remove parameters as
+      * you wish.)
+      * @param s the output stream 
+      * */
+    public void code(CgenNode node, CgenClassTable classTable, int curTemp, PrintStream s) {
+        int tempVar = 0;
+        // The code generator only use S1, T1, and T2 to store temp vars although more regs
+        // are allowed.
+        if (e1 instanceof int_const) {
+            CgenSupport.emitLoadInt(CgenSupport.ACC, (IntSymbol)((int_const) e1).token, s);
         } else {
-            emitErrorNonInt(leftType, rightType, curClass, classTable);
+            e1.code(node, classTable, curTemp, s);       
+            curTemp++;
         }
-        return set_type(TreeConstants.No_type);
+        CgenSupport.emitPush(CgenSupport.ACC, s);
+
+        if (e2 instanceof int_const) {
+            CgenSupport.emitLoadInt(CgenSupport.ACC, (IntSymbol)((int_const) e2).token, s);
+        } else {
+            e2.code(node, classTable, curTemp, s);
+        }
+        CgenSupport.emitLoad(CgenSupport.S1, 1, CgenSupport.SP, s);
+        CgenSupport.emitAddiu(CgenSupport.SP, CgenSupport.SP, 4, s);
+        CgenSupport.emitJal("Object.copy", s);
+        CgenSupport.emitLoad(CgenSupport.T2, CgenSupport.DEFAULT_OBJFIELDS, CgenSupport.ACC, s);
+        CgenSupport.emitLoad(CgenSupport.T1, CgenSupport.DEFAULT_OBJFIELDS, CgenSupport.S1, s);
+        CgenSupport.emitAdd(CgenSupport.T1, CgenSupport.T1, CgenSupport.T2, s);
+        CgenSupport.emitStore(CgenSupport.T1, CgenSupport.DEFAULT_OBJFIELDS, CgenSupport.ACC, s);
+
     }
 
-    private void emitErrorNonInt(AbstractSymbol leftType, AbstractSymbol rightType, class_c curClass, ClassTable classTable) {
-        classTable.semantError(curClass).println("non-Int arguments: " + leftType.toString() + 
-                                                 " + " + rightType.toString());
+    public int getTempNumber() {
+        return CgenSupport.max(e1.getTempNumber(), e2.getTempNumber() + 1);
     }
-
 }
 
 
-/** Define AST constructor 'sub'.
+/** Defines AST constructor 'sub'.
     <p>
     See <a href="TreeNode.html">TreeNode</a> for full documentation. */
 class sub extends Expression {
-    protected Expression e1;
-    protected Expression e2;
-    /** Cria o nó "sub" AST.
-       *
-       * @param lineNumber a linha no arquivo de origem do qual este nó veio.
-       * @param a0 valor inicial para e1
-       * @param a1 valor inicial para e
+    public Expression e1;
+    public Expression e2;
+    /** Creates "sub" AST node. 
+      *
+      * @param lineNumber the line in the source file from which this node came.
+      * @param a0 initial value for e1
+      * @param a1 initial value for e2
       */
     public sub(int lineNumber, Expression a1, Expression a2) {
         super(lineNumber);
@@ -1509,39 +1327,52 @@ class sub extends Expression {
 	e2.dump_with_types(out, n + 2);
 	dump_type(out, n);
     }
-
-    @Override
-    public Expression semant(ClassTable classTable, SymbolTable symbolTable, class_c curClass) {
-        AbstractSymbol leftType, rightType;
-        leftType = e1.semant(classTable, symbolTable, curClass).get_type();
-        rightType = e2.semant(classTable, symbolTable, curClass).get_type(); 
-        if (leftType.equals(TreeConstants.Int) && rightType.equals(TreeConstants.Int)) {
-            return set_type(TreeConstants.Int);
+    /** Generates code for this expression.  This method is to be completed 
+      * in programming assignment 5.  (You may add or remove parameters as
+      * you wish.)
+      * @param s the output stream 
+      * */
+    public void code(CgenNode node, CgenClassTable classTable, int curTemp, PrintStream s) {
+        if (e1 instanceof int_const) {
+            CgenSupport.emitLoadInt(CgenSupport.S1, (IntSymbol)((int_const) e1).token, s);
         } else {
-            emitErrorNonInt(leftType, rightType, curClass, classTable);
+            e1.code(node, classTable, curTemp, s);
+            curTemp++;
         }
-        return set_type(TreeConstants.No_type);
+
+        CgenSupport.emitPush(CgenSupport.ACC, s);
+
+        if (e2 instanceof int_const) {
+            CgenSupport.emitLoadInt(CgenSupport.ACC, (IntSymbol)((int_const) e2).token, s);
+        } else {
+            e2.code(node, classTable, curTemp, s);
+        }   
+        CgenSupport.emitLoad(CgenSupport.S1, 1, CgenSupport.SP, s);
+        CgenSupport.emitAddiu(CgenSupport.SP, CgenSupport.SP, 4, s);
+        CgenSupport.emitJal("Object.copy", s);
+        CgenSupport.emitLoad(CgenSupport.T2, CgenSupport.DEFAULT_OBJFIELDS, CgenSupport.ACC, s);
+        CgenSupport.emitLoad(CgenSupport.T1, CgenSupport.DEFAULT_OBJFIELDS, CgenSupport.S1, s);
+        CgenSupport.emitSub(CgenSupport.T1, CgenSupport.T1, CgenSupport.T2, s);
+        CgenSupport.emitStore(CgenSupport.T1, CgenSupport.DEFAULT_OBJFIELDS, CgenSupport.ACC, s);
     }
 
-    private void emitErrorNonInt(AbstractSymbol leftType, AbstractSymbol rightType, class_c curClass, ClassTable classTable) {
-        classTable.semantError(curClass).println("non-Int arguments: " + leftType.toString() + 
-                                                 " + " + rightType.toString());
+    public int getTempNumber() {
+        return CgenSupport.max(e1.getTempNumber(), e2.getTempNumber() + 1);
     }
-
 }
 
 
-/** Define AST constructor 'mul'.
+/** Defines AST constructor 'mul'.
     <p>
     See <a href="TreeNode.html">TreeNode</a> for full documentation. */
 class mul extends Expression {
-    protected Expression e1;
-    protected Expression e2;
-    /** Cria o nó AST "mul".
-       *
-       * @param lineNumber a linha no arquivo de origem do qual este nó veio.
-       * @param a0 valor inicial para e1
-       * @param a1 valor inicial para e2
+    public Expression e1;
+    public Expression e2;
+    /** Creates "mul" AST node. 
+      *
+      * @param lineNumber the line in the source file from which this node came.
+      * @param a0 initial value for e1
+      * @param a1 initial value for e2
       */
     public mul(int lineNumber, Expression a1, Expression a2) {
         super(lineNumber);
@@ -1565,39 +1396,53 @@ class mul extends Expression {
 	e2.dump_with_types(out, n + 2);
 	dump_type(out, n);
     }
-
-    @Override
-    public Expression semant(ClassTable classTable, SymbolTable symbolTable, class_c curClass) {
-        AbstractSymbol leftType, rightType;
-        leftType = e1.semant(classTable, symbolTable, curClass).get_type();
-        rightType = e2.semant(classTable, symbolTable, curClass).get_type(); 
-        if (leftType.equals(TreeConstants.Int) && rightType.equals(TreeConstants.Int)) {
-            return set_type(TreeConstants.Int);
+    /** Generates code for this expression.  This method is to be completed 
+      * in programming assignment 5.  (You may add or remove parameters as
+      * you wish.)
+      * @param s the output stream 
+      * */
+    public void code(CgenNode node, CgenClassTable classTable, int curTemp, PrintStream s) {
+        if (e1 instanceof int_const) {
+            CgenSupport.emitLoadInt(CgenSupport.ACC, (IntSymbol)((int_const) e1).token, s);
         } else {
-            emitErrorNonInt(leftType, rightType, curClass, classTable);
+            e1.code(node, classTable, curTemp, s);       
+            curTemp++;
         }
-        return set_type(TreeConstants.No_type);
+        CgenSupport.emitPush(CgenSupport.ACC, s);
+
+        if (e2 instanceof int_const) {
+            CgenSupport.emitLoadInt(CgenSupport.ACC, (IntSymbol)((int_const) e2).token, s);
+        } else {
+            e2.code(node, classTable, curTemp, s);
+        }
+        CgenSupport.emitLoad(CgenSupport.S1, 1, CgenSupport.SP, s);
+        CgenSupport.emitAddiu(CgenSupport.SP, CgenSupport.SP, 4, s);
+
+        CgenSupport.emitJal("Object.copy", s);
+        CgenSupport.emitLoad(CgenSupport.T2, CgenSupport.DEFAULT_OBJFIELDS, CgenSupport.ACC, s);
+        CgenSupport.emitLoad(CgenSupport.T1, CgenSupport.DEFAULT_OBJFIELDS, CgenSupport.S1, s);
+        CgenSupport.emitMul(CgenSupport.T1, CgenSupport.T1, CgenSupport.T2, s);
+        CgenSupport.emitStore(CgenSupport.T1, CgenSupport.DEFAULT_OBJFIELDS, CgenSupport.ACC, s);
     }
 
-    private void emitErrorNonInt(AbstractSymbol leftType, AbstractSymbol rightType, class_c curClass, ClassTable classTable) {
-        classTable.semantError(curClass).println("non-Int arguments: " + leftType.toString() + 
-                                                 " + " + rightType.toString());
+    public int getTempNumber() {
+        return CgenSupport.max(e1.getTempNumber(), e2.getTempNumber() + 1);
     }
 
 }
 
 
-/** Define AST constructor 'divide'.
+/** Defines AST constructor 'divide'.
     <p>
     See <a href="TreeNode.html">TreeNode</a> for full documentation. */
 class divide extends Expression {
-    protected Expression e1;
-    protected Expression e2;
-    /** Cria o nó AST "divide".
-       *
-       * @param lineNumber a linha no arquivo de origem do qual este nó veio.
-       * @param a0 valor inicial para e1
-       * @param a1 valor inicial para e2
+    public Expression e1;
+    public Expression e2;
+    /** Creates "divide" AST node. 
+      *
+      * @param lineNumber the line in the source file from which this node came.
+      * @param a0 initial value for e1
+      * @param a1 initial value for e2
       */
     public divide(int lineNumber, Expression a1, Expression a2) {
         super(lineNumber);
@@ -1621,36 +1466,51 @@ class divide extends Expression {
 	e2.dump_with_types(out, n + 2);
 	dump_type(out, n);
     }
-
-    @Override
-    public Expression semant(ClassTable classTable, SymbolTable symbolTable, class_c curClass) {
-        AbstractSymbol leftType, rightType;
-        leftType = e1.semant(classTable, symbolTable, curClass).get_type();
-        rightType = e2.semant(classTable, symbolTable, curClass).get_type(); 
-        if (leftType.equals(TreeConstants.Int) && rightType.equals(TreeConstants.Int)) {
-            return set_type(TreeConstants.Int);
+    /** Generates code for this expression.  This method is to be completed 
+      * in programming assignment 5.  (You may add or remove parameters as
+      * you wish.)
+      * @param s the output stream 
+      * */
+    public void code(CgenNode node, CgenClassTable classTable, int curTemp, PrintStream s) {
+        if (e1 instanceof int_const) {
+            CgenSupport.emitLoadInt(CgenSupport.ACC, (IntSymbol)((int_const) e1).token, s);
         } else {
-            emitErrorNonInt(leftType, rightType, curClass, classTable);
+            e1.code(node, classTable, curTemp, s);       
+            curTemp++;
         }
-        return set_type(TreeConstants.No_type);
+        CgenSupport.emitPush(CgenSupport.ACC, s);
+
+        if (e2 instanceof int_const) {
+            CgenSupport.emitLoadInt(CgenSupport.ACC, (IntSymbol)((int_const) e2).token, s);
+        } else {
+            e2.code(node, classTable, curTemp, s);
+        }
+        CgenSupport.emitLoad(CgenSupport.S1, 1, CgenSupport.SP, s);
+        CgenSupport.emitAddiu(CgenSupport.SP, CgenSupport.SP, 4, s);
+
+        CgenSupport.emitJal("Object.copy", s);
+        CgenSupport.emitLoad(CgenSupport.T2, CgenSupport.DEFAULT_OBJFIELDS, CgenSupport.ACC, s);
+        CgenSupport.emitLoad(CgenSupport.T1, CgenSupport.DEFAULT_OBJFIELDS, CgenSupport.S1, s);
+        CgenSupport.emitDiv(CgenSupport.T1, CgenSupport.T1, CgenSupport.T2, s);
+        CgenSupport.emitStore(CgenSupport.T1, CgenSupport.DEFAULT_OBJFIELDS, CgenSupport.ACC, s);
     }
 
-    private void emitErrorNonInt(AbstractSymbol leftType, AbstractSymbol rightType, class_c curClass, ClassTable classTable) {
-        classTable.semantError(curClass).println("non-Int arguments: " + leftType.toString() + 
-                                                 " + " + rightType.toString());
+    public int getTempNumber() {
+        return CgenSupport.max(e1.getTempNumber(), e2.getTempNumber() + 1);
     }
+
 }
 
 
-/** Define AST constructor 'neg'.
+/** Defines AST constructor 'neg'.
     <p>
     See <a href="TreeNode.html">TreeNode</a> for full documentation. */
 class neg extends Expression {
-    protected Expression e1;
-    /** Cria o nó AST "neg".
-       *
-       * @param lineNumber a linha no arquivo de origem do qual este nó veio.
-       * @param a0 valor inicial para e1
+    public Expression e1;
+    /** Creates "neg" AST node. 
+      *
+      * @param lineNumber the line in the source file from which this node came.
+      * @param a0 initial value for e1
       */
     public neg(int lineNumber, Expression a1) {
         super(lineNumber);
@@ -1671,36 +1531,36 @@ class neg extends Expression {
 	e1.dump_with_types(out, n + 2);
 	dump_type(out, n);
     }
-
-    @Override
-    public Expression semant(ClassTable classTable, SymbolTable symbolTable, class_c curClass) {
-        AbstractSymbol exprType = e1.semant(classTable, symbolTable, curClass).get_type();
-        if (TreeConstants.Int.equals(exprType)) {
-            return set_type(TreeConstants.Int);
-        } else {
-            emitErrorNonInt(exprType, curClass, classTable);
-        }
-        return set_type(TreeConstants.No_type);
+    /** Generates code for this expression.  This method is to be completed 
+      * in programming assignment 5.  (You may add or remove parameters as
+      * you wish.)
+      * @param s the output stream 
+      * */
+    public void code(CgenNode node, CgenClassTable classTable, int curTemp, PrintStream s) {
+        e1.code(node, classTable, curTemp, s);
+        CgenSupport.emitJal("Object.copy", s);
+        CgenSupport.emitLoad(CgenSupport.T1, CgenSupport.DEFAULT_OBJFIELDS, CgenSupport.ACC, s);
+        CgenSupport.emitNeg(CgenSupport.T1, CgenSupport.T1, s);
+        CgenSupport.emitStore(CgenSupport.T1, CgenSupport.DEFAULT_OBJFIELDS, CgenSupport.ACC, s);
     }
 
-    private void emitErrorNonInt(AbstractSymbol exprType, class_c curClass, ClassTable classTable) {
-        classTable.semantError(curClass).println("Argument of '~' has type " +
-                                                 exprType.toString() + " instead of Int.");
+    public int getTempNumber() {
+        return e1.getTempNumber();
     }
 }
 
 
-/** Define AST constructor 'lt'.
+/** Defines AST constructor 'lt'.
     <p>
     See <a href="TreeNode.html">TreeNode</a> for full documentation. */
 class lt extends Expression {
-    protected Expression e1;
-    protected Expression e2;
-    /** Cria o nó "lt" AST.
-       *
-       * @param lineNumber a linha no arquivo de origem do qual este nó veio.
-       * @param a0 valor inicial para e1
-       * @param a1 valor inicial para e2
+    public Expression e1;
+    public Expression e2;
+    /** Creates "lt" AST node. 
+      *
+      * @param lineNumber the line in the source file from which this node came.
+      * @param a0 initial value for e1
+      * @param a1 initial value for e2
       */
     public lt(int lineNumber, Expression a1, Expression a2) {
         super(lineNumber);
@@ -1724,38 +1584,47 @@ class lt extends Expression {
 	e2.dump_with_types(out, n + 2);
 	dump_type(out, n);
     }
+    /** Generates code for this expression.  This method is to be completed 
+      * in programming assignment 5.  (You may add or remove parameters as
+      * you wish.)
+      * @param s the output stream 
+      * */
+    public void code(CgenNode node, CgenClassTable classTable, int curTemp, PrintStream s) {
+        int label = CgenSupport.getLabel();
+        e1.code(node, classTable, curTemp, s);
+        CgenSupport.emitPush(CgenSupport.ACC, s);        
 
-    @Override
-    public Expression semant(ClassTable classTable, SymbolTable symbolTable, class_c curClass) {
-        AbstractSymbol leftType = e1.semant(classTable, symbolTable, curClass).get_type();
-        AbstractSymbol rightType = e2.semant(classTable, symbolTable, curClass).get_type();
+        e2.code(node, classTable, curTemp + 1, s);
+        CgenSupport.emitLoad(CgenSupport.S1, 1, CgenSupport.SP, s);
+        CgenSupport.emitAddiu(CgenSupport.SP, CgenSupport.SP, 4, s);
 
-        if (TreeConstants.Int.equals(leftType) && TreeConstants.Int.equals(rightType)) {
-            return set_type(TreeConstants.Bool);
-        } else {
-            emitErrorNonInt(leftType, rightType, curClass, classTable);
-        }
-        return set_type(TreeConstants.No_type);
+        CgenSupport.emitLoad(CgenSupport.T2, CgenSupport.DEFAULT_OBJFIELDS, CgenSupport.ACC, s);
+        CgenSupport.emitLoad(CgenSupport.T1, CgenSupport.DEFAULT_OBJFIELDS, CgenSupport.S1, s);
+
+        CgenSupport.emitLoadBool(CgenSupport.ACC, new BoolConst(true), s);
+        CgenSupport.emitBlt(CgenSupport.T1, CgenSupport.T2, label, s);
+        CgenSupport.emitLoadBool(CgenSupport.ACC, new BoolConst(false), s);
+        CgenSupport.emitLabelDef(label, s); 
+        
     }
 
-    private void emitErrorNonInt(AbstractSymbol leftType, AbstractSymbol rightType, class_c curClass, ClassTable classTable) {
-        classTable.semantError(curClass).println("non-Int arguments: " + leftType.toString() + 
-                                                 " < " + rightType.toString());
+    public int getTempNumber() {
+        return CgenSupport.max(e1.getTempNumber(), e2.getTempNumber() + 1);
     }
 }
 
 
-/** Define AST constructor 'eq'.
+/** Defines AST constructor 'eq'.
     <p>
     See <a href="TreeNode.html">TreeNode</a> for full documentation. */
 class eq extends Expression {
-    protected Expression e1;
-    protected Expression e2;
-    /** Cria o nó AST "eq".
-       *
-       * @param lineNumber a linha no arquivo de origem do qual este nó veio.
-       * @param a0 valor inicial para e1
-       * @param a1 valor inicial para e2
+    public Expression e1;
+    public Expression e2;
+    /** Creates "eq" AST node. 
+      *
+      * @param lineNumber the line in the source file from which this node came.
+      * @param a0 initial value for e1
+      * @param a1 initial value for e2
       */
     public eq(int lineNumber, Expression a1, Expression a2) {
         super(lineNumber);
@@ -1779,37 +1648,46 @@ class eq extends Expression {
 	e2.dump_with_types(out, n + 2);
 	dump_type(out, n);
     }
+    /** Generates code for this expression.  This method is to be completed 
+      * in programming assignment 5.  (You may add or remove parameters as
+      * you wish.)
+      * @param s the output stream 
+      * */
+    public void code(CgenNode node, CgenClassTable classTable, int curTemp, PrintStream s) {
+        int label = CgenSupport.getLabel();
+        e1.code(node, classTable, curTemp, s);
+        CgenSupport.emitPush(CgenSupport.ACC, s);        
 
-    @Override
-    public Expression semant(ClassTable classTable, SymbolTable symbolTable, class_c curClass) {
-        AbstractSymbol leftType = e1.semant(classTable, symbolTable, curClass).get_type();
-        AbstractSymbol rightType = e2.semant(classTable, symbolTable, curClass).get_type();
-        if (TreeConstants.Int.equals(leftType) || TreeConstants.Bool.equals(leftType) || TreeConstants.Str.equals(leftType)) {
-            if (!leftType.equals(rightType)) {
-                emitErrorIllegalCompare(curClass, classTable);
-                return set_type(TreeConstants.No_type);
-            }
-        }
-        return set_type(TreeConstants.Bool);
+        e2.code(node, classTable, curTemp + 1, s);
+        CgenSupport.emitMove(CgenSupport.T2, CgenSupport.ACC, s);
+        CgenSupport.emitLoad(CgenSupport.T1, 1, CgenSupport.SP, s);
+        CgenSupport.emitAddiu(CgenSupport.SP, CgenSupport.SP, 4, s);
+
+        CgenSupport.emitLoadBool(CgenSupport.ACC, new BoolConst(true), s);
+        CgenSupport.emitBeq(CgenSupport.T1, CgenSupport.T2, label, s);
+        CgenSupport.emitLoadBool(CgenSupport.A1, new BoolConst(false), s);
+        CgenSupport.emitJal("equality_test", s);
+
+        CgenSupport.emitLabelDef(label, s);    
     }
 
-    private void emitErrorIllegalCompare(class_c curClass, ClassTable classTable) {
-        classTable.semantError(curClass).println("Illegal comparison with a basic type.");
+    public int getTempNumber() {
+        return CgenSupport.max(e1.getTempNumber(), e2.getTempNumber() + 1);
     }
 }
 
 
-/** Define AST constructor 'leq'.
+/** Defines AST constructor 'leq'.
     <p>
     See <a href="TreeNode.html">TreeNode</a> for full documentation. */
 class leq extends Expression {
-    protected Expression e1;
-    protected Expression e2;
-    /** Cria o nó AST "leq".
-       *
-       * @param lineNumber a linha no arquivo de origem do qual este nó veio.
-       * @param a0 valor inicial para e1
-       * @param a1 valor inicial para e2
+    public Expression e1;
+    public Expression e2;
+    /** Creates "leq" AST node. 
+      *
+      * @param lineNumber the line in the source file from which this node came.
+      * @param a0 initial value for e1
+      * @param a1 initial value for e2
       */
     public leq(int lineNumber, Expression a1, Expression a2) {
         super(lineNumber);
@@ -1833,36 +1711,46 @@ class leq extends Expression {
 	e2.dump_with_types(out, n + 2);
 	dump_type(out, n);
     }
+    /** Generates code for this expression.  This method is to be completed 
+      * in programming assignment 5.  (You may add or remove parameters as
+      * you wish.)
+      * @param s the output stream 
+      * */
+    public void code(CgenNode node, CgenClassTable classTable, int curTemp, PrintStream s) {
+        int label = CgenSupport.getLabel();
 
-    @Override
-    public Expression semant(ClassTable classTable, SymbolTable symbolTable, class_c curClass) {
-        AbstractSymbol leftType = e1.semant(classTable, symbolTable, curClass).get_type();
-        AbstractSymbol rightType = e2.semant(classTable, symbolTable, curClass).get_type();
+        e1.code(node, classTable, curTemp, s);
+        CgenSupport.emitPush(CgenSupport.ACC, s);        
 
-        if (TreeConstants.Int.equals(leftType) && TreeConstants.Int.equals(rightType)) {
-            return set_type(TreeConstants.Bool);
-        } else {
-            emitErrorNonInt(leftType, rightType, curClass, classTable);
-        }
-        return set_type(TreeConstants.No_type);
+        e2.code(node, classTable, curTemp + 1, s);
+        CgenSupport.emitLoad(CgenSupport.S1, 1, CgenSupport.SP, s);
+        CgenSupport.emitAddiu(CgenSupport.SP, CgenSupport.SP, 4, s);
+
+        CgenSupport.emitLoad(CgenSupport.T1, CgenSupport.DEFAULT_OBJFIELDS, CgenSupport.S1, s);
+        CgenSupport.emitLoad(CgenSupport.T2, CgenSupport.DEFAULT_OBJFIELDS, CgenSupport.ACC, s);
+
+	CgenSupport.emitLoadBool(CgenSupport.ACC, new BoolConst(true), s);
+        CgenSupport.emitBleq(CgenSupport.T1, CgenSupport.T2, label, s);
+	CgenSupport.emitLoadBool(CgenSupport.ACC, new BoolConst(false), s);
+        CgenSupport.emitLabelDef(label, s);  
     }
 
-    private void emitErrorNonInt(AbstractSymbol leftType, AbstractSymbol rightType, class_c curClass, ClassTable classTable) {
-        classTable.semantError(curClass).println("non-Int arguments: " + leftType.toString() + 
-                                                 " <= " + rightType.toString());
+    public int getTempNumber() {
+        return CgenSupport.max(e1.getTempNumber(), e2.getTempNumber() + 1);
     }
+
 }
 
 
-/** Define AST constructor 'comp'.
+/** Defines AST constructor 'comp'.
     <p>
     See <a href="TreeNode.html">TreeNode</a> for full documentation. */
 class comp extends Expression {
-    protected Expression e1;
-    /** Cria o nó AST "comp".
-       *
-       * @param lineNumber a linha no arquivo de origem do qual este nó veio.
-       * @param a0 valor inicial para e1
+    public Expression e1;
+    /** Creates "comp" AST node. 
+      *
+      * @param lineNumber the line in the source file from which this node came.
+      * @param a0 initial value for e1
       */
     public comp(int lineNumber, Expression a1) {
         super(lineNumber);
@@ -1883,34 +1771,36 @@ class comp extends Expression {
 	e1.dump_with_types(out, n + 2);
 	dump_type(out, n);
     }
-
-    @Override
-    public Expression semant(ClassTable classTable, SymbolTable symbolTable, class_c curClass) {
-        AbstractSymbol exprType = e1.semant(classTable, symbolTable, curClass).get_type();
-        if (TreeConstants.Bool.equals(exprType)) {
-            return set_type(TreeConstants.Bool);
-        } else {
-            emitErrorNotBool(exprType, curClass, classTable);
-        }
-        return set_type(TreeConstants.No_type);
+    /** Generates code for this expression.  This method is to be completed 
+      * in programming assignment 5.  (You may add or remove parameters as
+      * you wish.)
+      * @param s the output stream 
+      * */
+    public void code(CgenNode node, CgenClassTable classTable, int curTemp, PrintStream s) {
+        int label = CgenSupport.getLabel();
+        e1.code(node, classTable, curTemp, s);
+        CgenSupport.emitLoad(CgenSupport.T1, CgenSupport.DEFAULT_OBJFIELDS, CgenSupport.ACC, s);
+	CgenSupport.emitLoadBool(CgenSupport.ACC, new BoolConst(true), s);
+        CgenSupport.emitBeqz(CgenSupport.T1, label, s);
+	CgenSupport.emitLoadBool(CgenSupport.ACC, new BoolConst(false), s);
+        CgenSupport.emitLabelDef(label, s);
     }
 
-    private void emitErrorNotBool(AbstractSymbol exprType, class_c curClass, ClassTable classTable) {
-        classTable.semantError(curClass).println("Argument of 'not' has type " + exprType.toString() + 
-                                                 " instead of Bool.");
+    public int getTempNumber() {
+        return e1.getTempNumber();
     }
 }
 
 
-/** Define AST constructor 'int_const'.
+/** Defines AST constructor 'int_const'.
     <p>
     See <a href="TreeNode.html">TreeNode</a> for full documentation. */
 class int_const extends Expression {
-    protected AbstractSymbol token;
-    /** Cria o nó AST "int_const".
-       *
-       * @param lineNumber a linha no arquivo de origem do qual este nó veio.
-       * @param a0 valor inicial para token
+    public AbstractSymbol token;
+    /** Creates "int_const" AST node. 
+      *
+      * @param lineNumber the line in the source file from which this node came.
+      * @param a0 initial value for token
       */
     public int_const(int lineNumber, AbstractSymbol a1) {
         super(lineNumber);
@@ -1931,24 +1821,31 @@ class int_const extends Expression {
 	dump_AbstractSymbol(out, n + 2, token);
 	dump_type(out, n);
     }
-
-    @Override
-    public Expression semant(ClassTable classTable, SymbolTable symbolTable, class_c curClass) {
-        return set_type(TreeConstants.Int);
+    /** Generates code for this expression.  This method method is provided
+      * to you as an example of code generation.
+      * @param s the output stream 
+      * */
+    public void code(CgenNode node, CgenClassTable classTable, int curTemp, PrintStream s) {
+	CgenSupport.emitLoadInt(CgenSupport.ACC,
+                                (IntSymbol)AbstractTable.inttable.lookup(token.getString()), s);
     }
 
+    public int getTempNumber() {
+        return 0;
+    }
+  
 }
 
 
-/** Define AST constructor 'bool_const'.
+/** Defines AST constructor 'bool_const'.
     <p>
     See <a href="TreeNode.html">TreeNode</a> for full documentation. */
 class bool_const extends Expression {
-    protected Boolean val;
-    /** Cria o nó AST "bool_const".
-       *
-       * @param lineNumber a linha no arquivo de origem do qual este nó veio.
-       * @param a0 valor inicial para val
+    public Boolean val;
+    /** Creates "bool_const" AST node. 
+      *
+      * @param lineNumber the line in the source file from which this node came.
+      * @param a0 initial value for val
       */
     public bool_const(int lineNumber, Boolean a1) {
         super(lineNumber);
@@ -1969,24 +1866,29 @@ class bool_const extends Expression {
 	dump_Boolean(out, n + 2, val);
 	dump_type(out, n);
     }
-
-    @Override
-    public Expression semant(ClassTable classTable, SymbolTable symbolTable, class_c curClass) {
-        return set_type(TreeConstants.Bool);
+    /** Generates code for this expression.  This method method is provided
+      * to you as an example of code generation.
+      * @param s the output stream 
+      * */
+    public void code(CgenNode node, CgenClassTable classTable, int curTemp, PrintStream s) {
+	CgenSupport.emitLoadBool(CgenSupport.ACC, new BoolConst(val), s);
     }
 
+    public int getTempNumber() {
+        return 0;
+    }
 }
 
 
-/** Define AST constructor 'string_const'.
+/** Defines AST constructor 'string_const'.
     <p>
     See <a href="TreeNode.html">TreeNode</a> for full documentation. */
 class string_const extends Expression {
-    protected AbstractSymbol token;
-    /** Cria o nó AST "string_const".
-       *
-       * @param lineNumber a linha no arquivo de origem do qual este nó veio.
-       * @param a0 valor inicial para token
+    public AbstractSymbol token;
+    /** Creates "string_const" AST node. 
+      *
+      * @param lineNumber the line in the source file from which this node came.
+      * @param a0 initial value for token
       */
     public string_const(int lineNumber, AbstractSymbol a1) {
         super(lineNumber);
@@ -2009,12 +1911,20 @@ class string_const extends Expression {
 	out.println("\"");
 	dump_type(out, n);
     }
-
-    @Override
-    public Expression semant(ClassTable classTable, SymbolTable symbolTable, class_c curClass) {
-        return set_type(TreeConstants.Str);
+    /** Generates code for this expression.  This method method is provided
+      * to you as an example of code generation.
+      * @param s the output stream 
+      * */
+    public void code(CgenNode node, CgenClassTable classTable, int curTemp, PrintStream s) {
+	CgenSupport.emitLoadString(CgenSupport.ACC,
+                                   (StringSymbol)AbstractTable.stringtable.lookup(token.getString()), s);
     }
 
+    public int getTempNumber() {
+        return 0;
+    }
+
+    public boolean isConstant() { return true; }
 }
 
 
@@ -2022,11 +1932,11 @@ class string_const extends Expression {
     <p>
     See <a href="TreeNode.html">TreeNode</a> for full documentation. */
 class new_ extends Expression {
-    protected AbstractSymbol type_name;
-    /** Cria o nó AST "new_".
-       *
-       * @param lineNumber a linha no arquivo de origem do qual este nó veio.
-       * @param a0 valor inicial para type_name
+    public AbstractSymbol type_name;
+    /** Creates "new_" AST node. 
+      *
+      * @param lineNumber the line in the source file from which this node came.
+      * @param a0 initial value for type_name
       */
     public new_(int lineNumber, AbstractSymbol a1) {
         super(lineNumber);
@@ -2047,31 +1957,51 @@ class new_ extends Expression {
 	dump_AbstractSymbol(out, n + 2, type_name);
 	dump_type(out, n);
     }
-
-    @Override
-    public Expression semant(ClassTable classTable, SymbolTable symbolTable, class_c curClass) {
-        if (classTable.hasType(type_name)) {
-            return set_type(type_name);
-        }
-        emitErrorClassUndefined(curClass, classTable);
-        return set_type(TreeConstants.No_type);     
+    /** Generates code for this expression.  This method is to be completed 
+      * in programming assignment 5.  (You may add or remove parameters as
+      * you wish.)
+      * @param s the output stream 
+      * */
+    public void code(CgenNode node, CgenClassTable classTable, int curTemp, PrintStream s) {
+         AbstractSymbol curType = get_type();
+         if (!TreeConstants.SELF_TYPE.equals(curType)) {
+             CgenSupport.emitPartialLoadAddress(CgenSupport.ACC, s);
+             CgenSupport.emitProtObjRef(curType, s);
+             s.println("");
+             s.print(CgenSupport.JAL);
+             CgenSupport.emitMethodRef(TreeConstants.Object_, TreeConstants.copy, s);
+             s.println("");
+             s.print(CgenSupport.JAL);
+             CgenSupport.emitInitRef(curType, s);
+             s.println("");
+         } else {
+             CgenSupport.emitLoadAddress(CgenSupport.T1, CgenSupport.CLASSOBJECTTABLE, s);
+             CgenSupport.emitLoad(CgenSupport.T2, 0, CgenSupport.SELF, s);
+             CgenSupport.emitSll(CgenSupport.T2, CgenSupport.T2, CgenSupport.DEFAULT_OBJFIELDS, s);
+             CgenSupport.emitAddu(CgenSupport.T1, CgenSupport.T1, CgenSupport.T2, s);
+             CgenSupport.emitMove(CgenSupport.S1, CgenSupport.T1, s);
+             CgenSupport.emitLoad(CgenSupport.ACC, 0, CgenSupport.T1, s);
+             CgenSupport.emitJal(CgenSupport.OBJECTCOPY, s);
+             CgenSupport.emitLoad(CgenSupport.T1, 1, CgenSupport.S1, s);
+             CgenSupport.emitJalr(CgenSupport.T1, s);
+          }
     }
 
-    private void emitErrorClassUndefined(class_c curClass, ClassTable classTable) {
-        classTable.semantError(curClass).println("'new' used with undefined class " + type_name.toString() + ".");
+    public int getTempNumber() {
+        return TreeConstants.SELF_TYPE.equals(type_name) ? 1 : 0;
     }
 }
 
 
-/** Define AST constructor 'isvoid'.
+/** Defines AST constructor 'isvoid'.
     <p>
     See <a href="TreeNode.html">TreeNode</a> for full documentation. */
 class isvoid extends Expression {
-    protected Expression e1;
-    /** Cria o nó AST "isvoid".
-       *
-       * @param lineNumber a linha no arquivo de origem do qual este nó veio.
-       * @param a0 valor inicial para e1
+    public Expression e1;
+    /** Creates "isvoid" AST node. 
+      *
+      * @param lineNumber the line in the source file from which this node came.
+      * @param a0 initial value for e1
       */
     public isvoid(int lineNumber, Expression a1) {
         super(lineNumber);
@@ -2092,23 +2022,36 @@ class isvoid extends Expression {
 	e1.dump_with_types(out, n + 2);
 	dump_type(out, n);
     }
+    /** Generates code for this expression.  This method is to be completed 
+      * in programming assignment 5.  (You may add or remove parameters as
+      * you wish.)
+      * @param s the output stream 
+      * */
+    public void code(CgenNode node, CgenClassTable classTable, int curTemp, PrintStream s) {
+        e1.code(node, classTable, curTemp, s);
 
-    @Override
-    public Expression semant(ClassTable classTable, SymbolTable symbolTable, class_c curClass) {
-        e1.semant(classTable, symbolTable, curClass);
-        return set_type(TreeConstants.Bool);
+        int label = CgenSupport.getLabel();
+        CgenSupport.emitMove(CgenSupport.T1, CgenSupport.ACC, s);
+        CgenSupport.emitLoadBool(CgenSupport.ACC, new BoolConst(true), s);
+        CgenSupport.emitBeqz(CgenSupport.T1, label, s);
+        CgenSupport.emitLoadBool(CgenSupport.ACC, new BoolConst(false), s);
+        CgenSupport.emitLabelDef(label, s);  
     }
 
+    public int getTempNumber() {
+        return e1.getTempNumber();
+    }
 }
 
 
-/** Define AST constructor 'no_expr'.
+/** Defines AST constructor 'no_expr'.
     <p>
     See <a href="TreeNode.html">TreeNode</a> for full documentation. */
 class no_expr extends Expression {
-    /** Cria o nó AST "no_expr".
-       *
-       * @param lineNumber a linha no arquivo de origem do qual este nó veio.    */
+    /** Creates "no_expr" AST node. 
+      *
+      * @param lineNumber the line in the source file from which this node came.
+      */
     public no_expr(int lineNumber) {
         super(lineNumber);
     }
@@ -2125,24 +2068,30 @@ class no_expr extends Expression {
         out.println(Utilities.pad(n) + "_no_expr");
 	dump_type(out, n);
     }
-
-    @Override
-    public Expression semant(ClassTable classTable, SymbolTable symbolTable, class_c curClass) {
-        return set_type(TreeConstants.No_type);
+    /** Generates code for this expression.  This method is to be completed 
+      * in programming assignment 5.  (You may add or remove parameters as
+      * you wish.)
+      * @param s the output stream 
+      * */
+    public void code(CgenNode node, CgenClassTable classTable, int curTemp, PrintStream s) {
+        return;
     }
 
+    public int getTempNumber() {
+        return 0;
+    }
 }
 
 
-/** Define AST constructor 'object'.
+/** Defines AST constructor 'object'.
     <p>
     See <a href="TreeNode.html">TreeNode</a> for full documentation. */
 class object extends Expression {
-    protected AbstractSymbol name;
-    /** Cria o nó AST "objeto".
-       *
-       * @param lineNumber a linha no arquivo de origem do qual este nó veio.
-       * @param a0 valor inicial para nome
+    public AbstractSymbol name;
+    /** Creates "object" AST node. 
+      *
+      * @param lineNumber the line in the source file from which this node came.
+      * @param a0 initial value for name
       */
     public object(int lineNumber, AbstractSymbol a1) {
         super(lineNumber);
@@ -2155,32 +2104,37 @@ class object extends Expression {
         out.print(Utilities.pad(n) + "object\n");
         dump_AbstractSymbol(out, n+2, name);
     }
-
-    
+ 
     public void dump_with_types(PrintStream out, int n) {
         dump_line(out, n);
         out.println(Utilities.pad(n) + "_object");
 	dump_AbstractSymbol(out, n + 2, name);
 	dump_type(out, n);
     }
-
-    @Override
-    public Expression semant(ClassTable classTable, SymbolTable symbolTable, class_c curClass) { 
-        if (symbolTable.lookup(name) != null) {
-            return set_type((AbstractSymbol) symbolTable.lookup(name));
-        } else {
-            // check ancestor classes if cannot find in outer scope
-            attr attrObject = (attr) classTable.getFeature(name, curClass.getName(), false);
-            if (attrObject != null) {
-                return set_type(attrObject.getType());
-            }
-            emitErrorIdUndefined(curClass, classTable);
+    /** Generates code for this expression.  This method is to be completed 
+      * in programming assignment 5.  (You may add or remove parameters as
+      * you wish.)
+      * @param s the output stream 
+      * */
+    public void code(CgenNode node, CgenClassTable classTable, int curTemp, PrintStream s) {
+        String reg = CgenSupport.ACC;
+        AbstractSymbol typeName = get_type();
+        if (TreeConstants.SELF_TYPE.equals(typeName)) {
+            CgenSupport.emitMove(CgenSupport.ACC, CgenSupport.SELF, s);
+            return;
         }
-        return set_type(TreeConstants.No_type);
+        int offset = 0;
+        if (classTable.lookup(name) instanceof Integer) {
+            offset = ((Integer)classTable.lookup(name)).intValue();
+            CgenSupport.emitLoad(reg, offset, CgenSupport.FP, s);
+        } else {
+            offset = classTable.getFeatureOffset(name, node.getName(), false);
+            CgenSupport.emitLoad(reg, offset + CgenSupport.DEFAULT_OBJFIELDS, CgenSupport.SELF, s);
+        }
     }
 
-    private void emitErrorIdUndefined(class_c curClass, ClassTable classTable) {
-        classTable.semantError(curClass).println("Undeclared identifier " + name.toString() + ".");
+    public int getTempNumber() {
+        return 0;
     }
 }
 
