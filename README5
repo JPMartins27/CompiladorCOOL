@@ -1,0 +1,124 @@
+LEIA este arquivo para a atribuição da programãção 5  (Java edition)
+=======================================================
+
+Seu diretódirio de possuir os seguintes arquivos::
+
+ ASTConstants.java    -> [course dir]/src/PA5J/ASTConstants.java
+ ASTLexer.java	      -> [course dir]/src/PA5J/ASTLexer.java
+ ASTParser.java	      -> [course dir]/src/PA5J/ASTParser.java
+ AbstractSymbol.java  -> [course dir]/src/PA5J/AbstractSymbol.java
+ AbstractTable.java   -> [course dir]/src/PA5J/AbstractTable.java
+ BoolConst.java
+ Cgen.java	      -> [course dir]/src/PA5J/Cgen.java
+ CgenClassTable.java
+ CgenNode.java
+ CgenSupport.java
+ ClassTable.java      -> [course dir]/src/PA5J/ClassTable.java
+ Flags.java	      -> [course dir]/src/PA5J/Flags.java
+ IdSymbol.java	      -> [course dir]/src/PA5J/IdSymbol.java
+ IdTable.java	      -> [course dir]/src/PA5J/IdTable.java
+ IntSymbol.java
+ IntTable.java	      -> [course dir]/src/PA5J/IntTable.java
+ ListNode.java	      -> [course dir]/src/PA5J/ListNode.java
+ Makefile	      -> [course dir]/assignments/PA5J/Makefile
+ README
+ StringSymbol.java
+ StringTable.java     -> [course dir]/src/PA5J/StringTable.java
+ SymbolTable.java     -> [course dir]/src/PA5J/SymbolTable.java
+ SymtabExample.java   -> [course dir]/src/PA5J/SymtabExample.java
+ TokenConstants.java  -> [course dir]/src/PA5J/TokenConstants.java
+ TreeConstants.java
+ TreeNode.java        -> [course dir]/src/PA5J/TreeNode.java
+ Utilities.java	      -> [course dir]/src/PA5J/Utilities.java
+ cool-tree.aps	      -> [course dir]/src/PA5J/cool-tree.aps
+ cool-tree.java
+ example.cl
+
+	O Makefile contem os destinos para compilar e executar seu programa.
+	EVITE MODIFICAR.
+
+	Em example.cl você deve escrever um programa Cool correto que
+	testa tantos aspectos do gerador de código quanto possível. isto
+	deve passar seu gerador de código e executar spim no
+	saída gerada deve executar o programa corretamente.
+
+	CgenClassTable.java CgenNode.java são os arquivos de estrutura para
+	o gerador de código. Essas estruturas são muito maiores que os
+	para tarefas anteriores. As estruturas fornecem três
+	componentes do gerador de código:
+
+		- funções para construir o gráfico de herança; (Nós fornecemos
+		isso no caso de você não conseguir este trabalho para PA4)
+
+		- funções para emitir dados globais e constantes;
+		 
+		Você deve trabalhar para entender este código e ele irá ajudá-lo
+        a escreva o resto do gerador de código.
+
+        TreeNode.java e ListNode.java contêm definições usadas por
+        o pacote da árvore.
+
+        cool-tree.java especifica e dá uma implementação de Cool
+        ASTs (veja o README para PA3 e o "Cool Tour"). Com isso,
+        você precisará completar o código gerando
+        métodos para todos os nós de expressão Cool.
+
+		BoolConst.java, IntSymbol.java e StringSymbol.java são usados
+        para gerenciar constantes em programas Cool. Você vai precisar
+        preencha o método para gerar definições constantes em
+        cada uma dessas classes.
+
+		CgenSupport.java é o código de suporte geral para o código
+		gerador. Você pode adicionar funções e constantes como você vê
+		ajuste, mas não modifique nada que já esteja lá. este
+		classe também serve como um espaço reservado para um monte de constantes 
+		bem como funções para emitir instruções de spim.
+ 
+
+
+	TreeConstants.java definiu algumas constantes de símbolos úteis. Você
+	pode adicionar alguns dos seus, se desejar, implementaqndo de seu modo.
+	
+	ASTLexer.java, ASTParser.java e ASTConstants.java implementam
+um léxico e um analisador para ler a representação de texto de ASTs
+do console no formato produzido pela fase do analisador. 
+
+		Cgen.java fornece o driver para o compilador.
+		O script mycoolc pode passar qualquer um dos
+        flags padrão para o gerador de código; para esta tarefa, -c
+        (depuração de gerador de código) pode ser útil, pois define um
+        variável cgen_debug para true (1). Se você quer seu código
+        gerador para imprimir informações de depuração quando a opção é definida,
+        escreva seu código de depuração no seguinte formato:
+
+	      if (cgen_debug)
+	      {
+		...
+	      }
+
+	SymbolTable.java contém uma implementação de tabela de símbolos. 
+	Ler	os comentários no arquivo e olhar para o exemplo em
+	SymtabExample.java. Este código é facultativo, porém de grande utilidade.
+
+Instruções
+------------
+
+	Para seu compilador e seu gerador de código:
+
+	% make cgen
+
+	Para o teste do seu compilador, digite:
+
+	% ./mycoolc [-o output filename] <file1.cl> <file2.cl> ...
+
+	Este comando analisa todos os arquivos Cool no comando
+	linha, passa-os através do verificador semântico, e depois entrega
+	o programa AST para o seu gerador de código.
+
+	Para executar seu compilador no arquivo example.cl, digite:
+
+	% make dotest
+
+	Para executar o código produzido:
+	
+	% spim -file file1.s  /* or the output filename you chose */
