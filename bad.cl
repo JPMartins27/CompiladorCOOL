@@ -1,29 +1,22 @@
-
-(*
- * execute "coolc bad.cl" para ver as mensagens de erro que o coolc parser
-  * gera
-  *
-  * execute "parsetest <bad.cl" para ver as mensagens de erro que seu analisador
-  * gera
- *)
-
-(* no error *)
-class A {
+class C {
+	a : Int;
+	b : Bool;
+	init(x : Int, y : Bool) : C {
+           {
+		a <- x;
+		b <- y;
+		self;
+           }
+	};
 };
 
-(* error:  b is not a type identifier *)
-Class b inherits A {
+Class Main {
+	main():C {
+	 {
+	  (new C).init(1,1);
+	  (new C).init(1,true,3);
+	  (new C).iinit(1,true);
+	  (new C);
+	 }
+	};
 };
-
-(* error:  a is not a type identifier *)
-Class C inherits a {
-};
-
-(* error:  keyword inherits is misspelled *)
-Class D inherts A {
-};
-
-(* error:  closing brace is missing *)
-Class E inherits A {
-;
-
